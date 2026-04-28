@@ -1,0 +1,113 @@
+# =========================
+
+# 🔐 ENV (variáveis sensíveis)
+
+# =========================
+
+.env
+.env.*
+!.env.example
+!.env.dev
+!.env.producao
+
+# =========================
+
+# 📦 NODE / DEPENDÊNCIAS
+
+# =========================
+
+node_modules/
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+
+# ⚙️ NUXT 3 / BUILD
+
+# =========================
+
+.nuxt/
+.output/
+dist/
+.cache/
+.temp/
+
+# =========================
+
+# 🧠 TYPESCRIPT
+
+# =========================
+
+*.tsbuildinfo
+
+# =========================
+
+# 🐳 DOCKER
+
+# =========================
+
+docker-compose.override.yml
+.docker/
+*.pid
+*.log
+
+# =========================
+
+# 🗄️ SUPABASE LOCAL
+
+# =========================
+
+.supabase/
+supabase/.temp/
+supabase/.branches/
+supabase/.cache/
+
+# =========================
+
+# 🖥️ SISTEMA OPERACIONAL
+
+# =========================
+
+.DS_Store
+Thumbs.db
+
+# =========================
+
+# 🧪 TESTES / COBERTURA
+
+# =========================
+
+coverage/
+*.lcov
+
+# =========================
+
+# 🔒 EDITORES / IDE
+
+# =========================
+
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+
+# 🗃️ LOGS GERAIS
+
+# =========================
+
+logs/
+*.log
+
+# =========================
+
+# 📁 UPLOADS / TEMP (SE USAR)
+
+# =========================
+
+uploads/
+tmp/

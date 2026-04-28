@@ -1,0 +1,50 @@
+# Configuração local do Supabase
+project_id = "gestao-ageis"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+# Desativa o coletor de logs (Vector) que entra em crash loop
+# quando não consegue acessar o socket do Docker.
+# Sem isso, o Studio funciona mas a aba "Logs" fica vazia.
+[analytics]
+enabled = false
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/confirmar"]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+
+# Edge Functions
+[functions.criarProjeto]
+verify_jwt = true
+[functions.atualizarProjeto]
+verify_jwt = true
+[functions.criarTarefa]
+verify_jwt = true
+[functions.moverTarefaKanban]
+verify_jwt = true
+[functions.adicionarComentario]
+verify_jwt = true
+[functions.listarDashboard]
+verify_jwt = true
+[functions.dashboardProjeto]
+verify_jwt = true

@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --cor-fundo: #f8fafc;
+  --cor-texto: #0f172a;
+}
+
+html, body, #__nuxt {
+  height: 100%;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.cartao {
+  @apply bg-white rounded-xl shadow-sm border border-slate-200 p-4;
+}
+.botao {
+  @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition;
+}
+.botao-primario { @apply botao bg-primaria text-white hover:opacity-90; }
+.botao-secundario { @apply botao bg-slate-100 text-slate-800 hover:bg-slate-200; }
+.botao-perigo { @apply botao bg-perigo text-white hover:opacity-90; }
