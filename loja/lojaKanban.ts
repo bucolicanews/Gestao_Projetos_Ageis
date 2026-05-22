@@ -57,6 +57,10 @@ export const useLojaKanban = defineStore('kanban', {
       const nova = await servicoTarefas().criarTarefa(payload)
       this.tarefas.push(nova)
       return nova
-    }
+    },
+
+    removerTarefa(id: string) {
+      this.tarefas = this.tarefas.filter(t => t.id !== id)
+    },
   }
 })

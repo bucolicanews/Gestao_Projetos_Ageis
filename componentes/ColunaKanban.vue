@@ -16,7 +16,7 @@
 
     <draggable :list="lista" group="kanban" item-key="id" class="flex-1 space-y-2" @change="aoAlterar">
       <template #item="{ element }">
-        <CartaoTarefa :tarefa="element" />
+        <CartaoTarefa :tarefa="element" @clicar="$emit('clicar-tarefa', $event)" />
       </template>
     </draggable>
 
@@ -35,12 +35,9 @@
     </div>
   </div>
 </template>
-
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, ref } from 'vue'
 import draggable from 'vuedraggable'
-import { servicoTarefas } from '~/servicos/servicoTarefas'
-const servico = servicoTarefas()
 
 export default defineComponent({
   name: 'ColunaKanban',
@@ -50,34 +47,63 @@ export default defineComponent({
   },
 
   props: {
-    titulo: {
-      type: String,
-      required: true
-    },
-
-    coluna: {
-      type: String,
-      required: true
-    },
-
-    tarefas: {
-      type: Array,
-      required: true
-    },
-
-    podeCriar: {
-      type: Boolean,
-      default: false
-    }
+    titulo: { type: String, required: true },
+    coluna: { type: String, required: true },
+    tarefas: { type: Array, required: true },
+    podeCriar: { type: Boolean, default: false }
   },
 
-  emits: ['mover', 'nova'],
+  emits: ['mover', 'nova', 'clicar-tarefa'],
 
-  data() {
+  setup(props, { emit }) {
+    const abrindo = ref(false)
+    const novoTitulo = ref('')
+
+    const abrirFormulario = () => {
+      abrindo.value = true
+    }
+
+    const fecharFormulario = () => {
+      abrindo.value = false
+      novoTitulo.value = ''
+    }
+
+    const aoAlterar = (evento: any) => {
+      const adicionado = evento.added
+      const movido = evento.moved
+
+      if (adicionado) {
+        emit('mover', {
+          tarefa_id: adicionado.element.id,
+          coluna: props.coluna,
+          posicao: adicionado.newIndex
+        })
+      }
+
+      if (movido) {
+        emit('mover', {
+          tarefa_id: movido.element.id,
+          coluna: props.coluna,
+          posicao: movido.newIndex
+        })
+      }
+    }
+
+    const criar = () => {
+      const titulo = novoTitulo.value.trim()
+      if (!titulo) return
+      emit('nova', { titulo, coluna: props.coluna })
+      novoTitulo.value = ''
+      abrindo.value = false
+    }
+
     return {
-      abrindo: false,
-      novoTitulo: '',
-      servico: servicoTarefas(), 
+      abrindo,
+      novoTitulo,
+      abrirFormulario,
+      fecharFormulario,
+      aoAlterar,
+      criar
     }
   },
 
@@ -86,66 +112,9 @@ export default defineComponent({
       get(): any[] {
         return this.tarefas
       },
-
       set(novaLista: any[]) {
         return novaLista
       }
-    }
-  },
-
-  methods: {
-
-    
-    abrirFormulario() {
-      this.abrindo = true
-    },
-
-    fecharFormulario() {
-      this.abrindo = false
-      this.novoTitulo = ''
-    },
-
-    aoAlterar(evento: any) {
-      const adicionado = evento.added
-
-      if (adicionado) {
-        this.$emit('mover', {
-          tarefa_id: adicionado.element.id,
-          coluna: this.coluna,
-          posicao: adicionado.newIndex
-        })
-      }
-
-      const movido = evento.moved
-
-      if (movido) {
-        this.$emit('mover', {
-          tarefa_id: movido.element.id,
-          coluna: this.coluna,
-          posicao: movido.newIndex
-        })
-      }
-    },
-
-    async criar() {
-      const titulo = this.novoTitulo.trim()
-
-      if (!titulo) return
-
-      try {
-        const tarefa = await this.servico.criarTarefa({
-          titulo,
-          coluna: this.coluna
-        })
-
-        this.$emit('nova', tarefa)
-
-      } catch (erro) {
-        console.error(erro)
-      }
-
-      this.novoTitulo = ''
-      this.abrindo = false
     }
   }
 })

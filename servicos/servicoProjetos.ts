@@ -15,13 +15,23 @@ export const servicoProjetos = () => {
   }
 
   async function criarProjeto(payload: { nome: string; descricao?: string }) {
-    const { data, error } = await cliente.functions.invoke('criarProjeto', { body: payload })
+    const { data, error } = await cliente
+      .from('projetos')
+      .insert(payload)
+      .select()
+      .single()
     if (error) throw error
     return data
   }
 
   async function atualizarProjeto(payload: { id: string; nome?: string; descricao?: string; status?: string }) {
-    const { data, error } = await cliente.functions.invoke('atualizarProjeto', { body: payload })
+    const { id, ...campos } = payload
+    const { data, error } = await cliente
+      .from('projetos')
+      .update(campos)
+      .eq('id', id)
+      .select()
+      .single()
     if (error) throw error
     return data
   }

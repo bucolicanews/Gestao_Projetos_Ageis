@@ -51,24 +51,62 @@ export default defineComponent({
       email: '',
       senha: '',
       erro: '',
-      carregando: false
+      carregando: false,
+      tokenConvite: '',
+    }
+  },
+
+  async mounted() {
+    const route = useRoute()
+    if (route.query.email) {
+      this.email = String(route.query.email)
+    }
+    if (route.query.invite) {
+      this.tokenConvite = String(route.query.invite)
     }
   },
 
   methods: {
+    async resolverOrgDoConvite(): Promise<string | null> {
+      if (!this.tokenConvite) return null
+      const cliente = useSupabaseClient()
+      const { data: convite } = await cliente
+        .from('convites_projeto')
+        .select('projeto_id')
+        .eq('token', this.tokenConvite)
+        .is('usado_em', null)
+        .single()
+      if (!convite?.projeto_id) return null
+      const { data: proj } = await cliente
+        .from('projetos')
+        .select('organizacao_id')
+        .eq('id', convite.projeto_id)
+        .single()
+      return proj?.organizacao_id ?? null
+    },
+
     async enviar() {
-      const { cadastrar } = useAutenticacao()
+      const cliente = useSupabaseClient()
       const router = useRouter()
 
       this.carregando = true
       this.erro = ''
 
       try {
-        await cadastrar(
-          this.email,
-          this.senha,
-          this.nome
-        )
+        const organizacao_id = await this.resolverOrgDoConvite()
+        const redirect = typeof window !== 'undefined'
+          ? `${window.location.origin}/confirmar`
+          : undefined
+
+        const metadata: Record<string, string> = { nome: this.nome }
+        if (organizacao_id) metadata.organizacao_id = organizacao_id
+
+        const { error } = await cliente.auth.signUp({
+          email: this.email,
+          password: this.senha,
+          options: { data: metadata, emailRedirectTo: redirect },
+        })
+        if (error) throw error
 
         await router.push('/')
       } catch (e: any) {

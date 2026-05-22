@@ -4,42 +4,49 @@ export const servicoEquipe = () => {
 
 
   async function listarMembros() {
-    const { data, error } = await cliente.from('membros_projeto')
-      .select(`
-        id,
-        usuario_id,
-        papel,
-        usuarios (
-          id,
-          nome,
-          email,
-          avatar_url,
-          perfil
-        )
-      `)
-      if (error) throw error
-    
+    const { data: membros, error } = await cliente
+      .from('membros_projeto')
+      .select('id, usuario_id, papel')
+    if (error) throw error
+    if (!membros?.length) return []
 
-    return data
+    const ids = membros.map((m: any) => m.usuario_id)
+    const { data: usuarios, error: err2 } = await cliente
+      .from('usuarios')
+      .select('id, nome, email, avatar_url')
+      .in('id', ids)
+    if (err2) throw err2
+
+    const mapa: Record<string, any> = {}
+    for (const u of (usuarios || [])) mapa[u.id] = u
+
+    return membros.map((m: any) => ({ ...m, usuarios: mapa[m.usuario_id] ?? null }))
   }
   async function listarMembrosPorID(projetoId: string) {
-    const { data, error } = await cliente.from('membros_projeto')
-      .select(`
-        id,
-        usuario_id,
-        papel,
-        usuarios (
-          id,
-          nome,
-          email,
-          avatar_url,
-          perfil
-        )
-      `)
+    const { data: membros, error } = await cliente
+      .from('membros_projeto')
+      .select('id, usuario_id, papel')
       .eq('projeto_id', projetoId)
     if (error) throw error
-    console.log('Membros do projeto:', data)
-    return data
+    if (!membros?.length) return []
+
+    const ids = membros.map((m: any) => m.usuario_id)
+    const { data: usuarios, error: err2 } = await cliente
+      .from('usuarios')
+      .select('id, nome, email, avatar_url')
+      .in('id', ids)
+    if (err2) throw err2
+
+    const mapa: Record<string, any> = {}
+    for (const u of (usuarios || [])) mapa[u.id] = u
+
+    return membros.map((m: any) => ({ ...m, usuarios: mapa[m.usuario_id] ?? null }))
+  }
+
+  async function listarTodos() {
+    const { data, error } = await cliente.from('usuarios').select('id, nome, email, avatar_url').order('nome')
+    if (error) throw error
+    return data || []
   }
 
   async function adicionarMembro(projeto_id: string, usuario_id: string, papel = 'desenvolvedor') {
@@ -51,6 +58,5 @@ export const servicoEquipe = () => {
     const { error } = await cliente.from('membros_projeto').delete().eq('id', id)
     if (error) throw error
   }
-  console.log('Listando membros...'+listarMembros)
-  return { listarMembros, adicionarMembro, removerMembro, listarMembrosPorID }
+  return { listarMembros, listarTodos, adicionarMembro, removerMembro, listarMembrosPorID }
 }

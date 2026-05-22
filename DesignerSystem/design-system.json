@@ -1,0 +1,56 @@
+{
+  "meta": {
+    "name": "GESTAO DE PROJETOS",
+    "description": "Designmare System para GESTAO DE PROJETOS, focada em produtos de alta qualidade e inovação.",
+    "prefix": "ds"
+  },
+  "colors": {
+    "background": "0 0% 100%",
+    "foreground": "222 47% 11%",
+    "card": "0 0% 100%",
+    "cardForeground": "222 47% 11%",
+    "primary": "221 83% 53%",
+    "primaryForeground": "210 40% 98%",
+    "secondary": "210 40% 96%",
+    "secondaryForeground": "222 47% 11%",
+    "muted": "210 40% 96%",
+    "mutedForeground": "215 16% 47%",
+    "accent": "262 83% 58%",
+    "accentForeground": "210 40% 98%",
+    "destructive": "0 84% 60%",
+    "destructiveForeground": "0 0% 100%",
+    "border": "214 32% 91%",
+    "input": "214 32% 91%",
+    "ring": "221 83% 53%"
+  },
+  "typography": {
+    "fontDisplay": "Space Grotesk",
+    "fontBody": "Inter",
+    "fontMono": "JetBrains Mono",
+    "baseSize": 16,
+    "scale": 1.25,
+    "lineHeight": 1.55,
+    "letterSpacing": -0.01,
+    "weightBody": 400,
+    "weightHeading": 700
+  },
+  "spacing": {
+    "base": 4,
+    "steps": 12
+  },
+  "radius": {
+    "none": 0,
+    "sm": 4,
+    "md": 8,
+    "lg": 12,
+    "xl": 20,
+    "full": 9999
+  },
+  "shadows": {
+    "sm": "0 1px 2px 0 hsl(0 0% 0% / 0.05)",
+    "md": "0 4px 6px -1px hsl(0 0% 0% / 0.10), 0 2px 4px -2px hsl(0 0% 0% / 0.05)",
+    "lg": "0 10px 15px -3px hsl(0 0% 0% / 0.10), 0 4px 6px -4px hsl(0 0% 0% / 0.10)",
+    "xl": "0 25px 50px -12px hsl(0 0% 0% / 0.25)",
+    "glow": "0 0 0 1px hsl(221 83% 53% / 0.2), 0 10px 30px -10px hsl(221 83% 53% / 0.5)"
+  }
+}

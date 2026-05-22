@@ -18,7 +18,8 @@ create table public.usuarios (
   email text not null unique,
   avatar_url text,
   criado_em timestamptz not null default now(),
-  atualizado_em timestamptz not null default now()
+  atualizado_em timestamptz not null default now(),
+  perfil papel_app not null default 'desenvolvedor'
 );
 
 -- ============================================================

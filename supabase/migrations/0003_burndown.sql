@@ -1,85 +1,56 @@
--- ============================================================
--- 0003_burndown.sql — Snapshot diário para burndown chart
--- ============================================================
+-- Migration para criar a tabela sub_tarefas
+CREATE TABLE public.sub_tarefas (
+    -- Identificadores Únicos
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    projeto_id UUID NOT NULL,
+    sprint_id UUID,
+    
+    -- Relacionamento com a tarefa principal (tarefa_pai)
+    tarefa_pai_id UUID NOT NULL,
+    
+    -- Campos de Texto
+    titulo TEXT NOT NULL,
+    descricao TEXT,
+    
+    -- Enums e Tipos Customizados (conforme sua estrutura de tarefas)
+    prioridade public.prioridade_tarefa,
+    coluna public.coluna_kanban,
+    
+    -- Campos Numéricos
+    posicao INTEGER DEFAULT 0,
+    pontos INTEGER DEFAULT 0,
+    
+    -- Relacionamentos com a tabela usuarios
+    responsavel_id UUID,
+    criado_por UUID,
+    
+    -- Datas e Timestamps
+    prazo DATE,
+    criado_em TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    entrou_coluna_em TIMESTAMPTZ,
+    concluido_em TIMESTAMPTZ,
 
-create table public.snapshots_sprint (
-  id uuid primary key default gen_random_uuid(),
-  sprint_id uuid not null references public.sprints(id) on delete cascade,
-  data date not null,
-  total_tarefas int not null default 0,
-  concluidas int not null default 0,
-  restantes int not null default 0,
-  criado_em timestamptz not null default now(),
-  unique (sprint_id, data)
+    -- CONFIGURAÇÃO DAS CHAVES ESTRANGEIRAS (RELACIONAMENTOS)
+    
+    -- 1. Garante que a tarefa_pai_id aponte para um ID válido na tabela tarefas
+    CONSTRAINT fk_sub_tarefas_pai 
+        FOREIGN KEY (tarefa_pai_id) 
+        REFERENCES public.tarefas(id) 
+        ON DELETE CASCADE,
+
+    -- 2. Garante que o responsavel_id aponte para um usuário válido
+    CONSTRAINT fk_sub_tarefas_responsavel 
+        FOREIGN KEY (responsavel_id) 
+        REFERENCES public.usuarios(id) 
+        ON DELETE SET NULL,
+
+    -- 3. Garante que o criado_por aponte para um usuário válido
+    CONSTRAINT fk_sub_tarefas_criador 
+        FOREIGN KEY (criado_por) 
+        REFERENCES public.usuarios(id) 
+        ON DELETE SET NULL
 );
-create index idx_snap_sprint on public.snapshots_sprint(sprint_id, data);
 
-alter table public.snapshots_sprint enable row level security;
-
-create policy "snap_select_membros" on public.snapshots_sprint
-  for select to authenticated
-  using (exists (
-    select 1 from public.sprints s
-    where s.id = sprint_id and public.eh_membro(s.projeto_id, auth.uid())
-  ));
-
-create policy "snap_insert_membros" on public.snapshots_sprint
-  for insert to authenticated
-  with check (exists (
-    select 1 from public.sprints s
-    where s.id = sprint_id and public.eh_membro(s.projeto_id, auth.uid())
-  ));
-
--- Função que registra/atualiza snapshot de hoje para uma sprint
-create or replace function public.registrar_snapshot_sprint(_sprint_id uuid)
-returns void
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  v_total int;
-  v_concl int;
-begin
-  select
-    count(*)::int,
-    count(*) filter (where coluna = 'concluido')::int
-  into v_total, v_concl
-  from public.tarefas
-  where sprint_id = _sprint_id;
-
-  insert into public.snapshots_sprint (sprint_id, data, total_tarefas, concluidas, restantes)
-  values (_sprint_id, current_date, v_total, v_concl, v_total - v_concl)
-  on conflict (sprint_id, data)
-  do update set
-    total_tarefas = excluded.total_tarefas,
-    concluidas    = excluded.concluidas,
-    restantes     = excluded.restantes;
-end;
-$$;
-
--- Trigger: a cada UPDATE/INSERT/DELETE em tarefas com sprint, atualiza snapshot do dia
-create or replace function public.aoMudarTarefaAtualizarSnapshot()
-returns trigger language plpgsql security definer set search_path = public as $$
-begin
-  if (tg_op = 'DELETE') then
-    if old.sprint_id is not null then
-      perform public.registrar_snapshot_sprint(old.sprint_id);
-    end if;
-    return old;
-  else
-    if new.sprint_id is not null then
-      perform public.registrar_snapshot_sprint(new.sprint_id);
-    end if;
-    if (tg_op = 'UPDATE' and old.sprint_id is not null and old.sprint_id is distinct from new.sprint_id) then
-      perform public.registrar_snapshot_sprint(old.sprint_id);
-    end if;
-    return new;
-  end if;
-end;
-$$;
-
-drop trigger if exists trg_tarefas_snapshot on public.tarefas;
-create trigger trg_tarefas_snapshot
-  after insert or update or delete on public.tarefas
-  for each row execute function public.aoMudarTarefaAtualizarSnapshot();
+-- Indexação para melhorar a performance de busca por tarefa pai
+CREATE INDEX idx_sub_tarefas_pai_id ON public.sub_tarefas(tarefa_pai_id);

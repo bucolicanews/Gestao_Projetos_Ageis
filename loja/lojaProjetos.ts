@@ -21,6 +21,13 @@ export const useLojaProjetos = defineStore('projetos', {
       this.projetos.unshift(novo)
       return novo
     },
+    async atualizar(payload: { id: string; nome?: string; descricao?: string; status?: string }) {
+      const atualizado = await servicoProjetos().atualizarProjeto(payload)
+      const idx = this.projetos.findIndex(p => p.id === payload.id)
+      if (idx !== -1) this.projetos[idx] = atualizado
+      if (this.projetoAtual?.id === payload.id) this.projetoAtual = atualizado
+      return atualizado
+    },
     async excluir(id: string) {
       await servicoProjetos().excluirProjeto(id)
       this.projetos = this.projetos.filter(p => p.id !== id)

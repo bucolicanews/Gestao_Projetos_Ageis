@@ -8,24 +8,24 @@
       <div class="flex items-center gap-3">
         <div v-if="presentes.length" class="flex items-center gap-2">
           <div class="flex -space-x-2">
-            <div v-for="p in presentesLimitados" :key="p.id" :title="p.nome"
-              class="w-8 h-8 rounded-full bg-primaria text-white text-xs flex items-center justify-center border-2 border-white">
+            <div
+              v-for="p in presentesLimitados"
+              :key="p.id"
+              :title="p.nome"
+              class="w-8 h-8 rounded-full bg-primaria text-white text-xs flex items-center justify-center border-2 border-white"
+            >
               {{ inicialNome(p.nome) }}
             </div>
           </div>
 
           <span class="text-xs text-slate-500">
             {{ presentes.length }} online
-
-            <span class="inline-block w-2 h-2 rounded-full bg-sucesso animate-pulse ml-1"></span>
+            <span class="inline-block w-2 h-2 rounded-full bg-sucesso animate-pulse ml-1" />
           </span>
         </div>
 
         <select v-model="projetoId" class="px-3 py-2 border rounded-lg">
-          <option value="">
-            Selecione um projeto...
-          </option>
-
+          <option value="">Selecione um projeto...</option>
           <option v-for="p in lojaProjetos.projetos" :key="p.id" :value="p.id">
             {{ p.nome }}
           </option>
@@ -38,10 +38,27 @@
     </div>
 
     <div v-else class="grid grid-cols-1 md:grid-cols-5 gap-4">
-      <ColunaKanban v-for="col in COLUNAS" :key="col.id" :titulo="col.titulo" :coluna="col.id"
-        :tarefas="loja.porColuna(col.id)" :pode-criar="podeCriarTarefas" @mover="aoMover"
-        @nova="criarNovaTarefa($event, col.id)" />
+      <ColunaKanban
+        v-for="col in COLUNAS"
+        :key="col.id"
+        :titulo="col.titulo"
+        :coluna="col.id"
+        :tarefas="loja.porColuna(col.id)"
+        :pode-criar="podeCriarTarefas"
+        @mover="aoMover"
+        @nova="criarNovaTarefa($event, col.id)"
+        @clicar-tarefa="abrirModal"
+      />
     </div>
+
+    <ModalTarefa
+      :exibir="modalAberto"
+      :tarefa="tarefaSelecionada"
+      :membros="membros"
+      @fechar="fecharModal"
+      @salvo="aoSalvarTarefa"
+      @deletado="aoDeletarTarefa"
+    />
   </div>
 </template>
 
@@ -61,20 +78,15 @@ export default defineComponent({
       lojaProjetos: useLojaProjetos(),
       user: useSupabaseUser(),
       projetoId: String(route.query.projeto ?? ''),
-      presentes: [] as any[]
+      presentes: [] as any[],
+      membros: [] as any[],
+      tarefaSelecionada: null as any,
+      modalAberto: false,
     }
   },
 
   computed: {
-    meuMembro() {
-      // TODO: Implementar busca de membro do projeto atual
-      // Por ora, permite criar tarefas para usuários logados
-      return this.user ? { papel: 'desenvolvedor' } : null
-    },
-
     podeCriarTarefas() {
-      // Por enquanto, permite criar se estiver logado
-      // TODO: Implementar verificação de papel via membros do projeto
       return !!this.user
     },
 
@@ -89,6 +101,7 @@ export default defineComponent({
       async handler(id: string) {
         if (id) {
           await this.loja.carregar(id)
+          await this.carregarMembros(id)
           this.iniciarRealtime()
         }
       }
@@ -99,29 +112,42 @@ export default defineComponent({
     if (!this.lojaProjetos.projetos.length) {
       await this.lojaProjetos.carregar()
     }
-
-    this.iniciarRealtime()
   },
 
   methods: {
+    async carregarMembros(projetoId: string) {
+      const dados = await servicoEquipe().listarMembrosPorID(projetoId)
+      this.membros = dados || []
+    },
+
     iniciarRealtime() {
       const projetoIdRef = computed(() => this.projetoId || null)
       const { presentes: presentesRef } = useRealtimeKanban(projetoIdRef)
-
-      // Desempacota o Ref para obter o valor real
       this.presentes = presentesRef.value || []
     },
 
-    async aoMover(evento: {
-      tarefa_id: string
-      coluna: string
-      posicao: number
-    }) {
-      await this.loja.mover(
-        evento.tarefa_id,
-        evento.coluna,
-        evento.posicao
-      )
+    abrirModal(tarefa: any) {
+      this.tarefaSelecionada = tarefa
+      this.modalAberto = true
+    },
+
+    fecharModal() {
+      this.modalAberto = false
+      this.tarefaSelecionada = null
+    },
+
+    aoSalvarTarefa(tarefaAtualizada: any) {
+      const i = this.loja.tarefas.findIndex(t => t.id === tarefaAtualizada.id)
+      if (i >= 0) Object.assign(this.loja.tarefas[i], tarefaAtualizada)
+    },
+
+    aoDeletarTarefa(id: string) {
+      this.loja.tarefas = this.loja.tarefas.filter(t => t.id !== id)
+      useLojaSprints().removerTarefaLocal(id)
+    },
+
+    async aoMover(evento: { tarefa_id: string; coluna: string; posicao: number }) {
+      await this.loja.mover(evento.tarefa_id, evento.coluna, evento.posicao)
     },
 
     async criarNovaTarefa(payload: any, colunaId: string) {
@@ -133,9 +159,7 @@ export default defineComponent({
     },
 
     inicialNome(nome: string) {
-      return (nome ?? '?')
-        .slice(0, 1)
-        .toUpperCase()
+      return (nome ?? '?').slice(0, 1).toUpperCase()
     }
   }
 })

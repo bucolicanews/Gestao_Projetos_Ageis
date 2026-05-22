@@ -11,8 +11,13 @@ Deno.serve(async (req) => {
   try {
     const { supa } = await obterUsuario(req)
     const url = new URL(req.url)
-    const projeto_id = url.searchParams.get('projeto_id')
-    const dias = Number(url.searchParams.get('dias') ?? '14')
+    let projeto_id = url.searchParams.get('projeto_id')
+    let dias = Number(url.searchParams.get('dias') ?? '14')
+    if (!projeto_id && req.method === 'POST') {
+      const body = await req.json().catch(() => ({}))
+      projeto_id = body.projeto_id ?? null
+      if (body.dias) dias = Number(body.dias)
+    }
     if (!projeto_id) {
       return new Response(JSON.stringify({ erro: 'projeto_id obrigatório' }),
         { status: 400, headers: { ...cabecalhosCors, 'Content-Type': 'application/json' } })

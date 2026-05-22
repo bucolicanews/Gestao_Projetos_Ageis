@@ -15,16 +15,25 @@
     </div>
 
     <div v-else class="grid gap-4 md:grid-cols-3">
-      <NuxtLink v-for="p in loja.projetos" :key="p.id" :to="linkProjeto(p.id)"
-        class="cartao hover:shadow-md transition">
+      <div v-for="p in loja.projetos" :key="p.id" class="cartao hover:shadow-md transition">
         <div class="flex justify-between items-start">
-          <h3 class="font-semibold text-lg">
+          <NuxtLink :to="linkProjeto(p.id)" class="font-semibold text-lg hover:text-primaria">
             {{ p.nome }}
-          </h3>
+          </NuxtLink>
 
-          <span class="text-xs px-2 py-1 rounded bg-slate-100">
-            {{ p.status }}
-          </span>
+          <div class="flex items-center gap-2">
+            <span class="text-xs px-2 py-1 rounded bg-slate-100">
+              {{ p.status }}
+            </span>
+
+            <button
+              class="text-xs text-slate-400 hover:text-primaria p-1 rounded"
+              title="Editar projeto"
+              @click.stop="abrirEdicao(p)"
+            >
+              ✏️
+            </button>
+          </div>
         </div>
 
         <p class="text-sm text-slate-500 mt-2 line-clamp-3">
@@ -32,26 +41,32 @@
         </p>
 
         <div class="mt-3 flex gap-3 text-xs text-slate-500">
-          <NuxtLink :to="linkProjeto(p.id)" @click.stop class="hover:text-primaria">
+          <NuxtLink :to="linkProjeto(p.id)" class="hover:text-primaria">
             📊 Dashboard
           </NuxtLink>
 
-          <NuxtLink :to="linkKanban(p.id)" @click.stop class="hover:text-primaria">
+          <NuxtLink :to="linkKanban(p.id)" class="hover:text-primaria">
             Kanban
           </NuxtLink>
 
-          <NuxtLink :to="linkSprint(p.id)" @click.stop class="hover:text-primaria">
+          <NuxtLink :to="linkSprint(p.id)" class="hover:text-primaria">
             Sprints
           </NuxtLink>
         </div>
-      </NuxtLink>
+      </div>
 
       <div v-if="!loja.projetos.length" class="text-slate-500">
         Nenhum projeto ainda.
       </div>
     </div>
 
-    <ModalProjeto v-if="abrindo" @fechar="fecharModal" @criado="projetoCriado" />
+    <ModalProjeto
+      v-if="abrindo"
+      :projeto="projetoEditando"
+      @fechar="fecharModal"
+      @criado="projetoCriado"
+      @atualizado="fecharModal"
+    />
   </div>
 </template>
 
@@ -64,7 +79,8 @@ export default defineComponent({
   data() {
     return {
       loja: useLojaProjetos(),
-      abrindo: false
+      abrindo: false,
+      projetoEditando: null as any
     }
   },
 
@@ -78,11 +94,18 @@ export default defineComponent({
     },
 
     abrirModal() {
+      this.projetoEditando = null
+      this.abrindo = true
+    },
+
+    abrirEdicao(projeto: any) {
+      this.projetoEditando = projeto
       this.abrindo = true
     },
 
     fecharModal() {
       this.abrindo = false
+      this.projetoEditando = null
     },
 
     projetoCriado() {
