@@ -20,7 +20,8 @@
     "s:lista": "supabase projects list",
     "s:projeto": "supabase link --project-ref",
     "s:logout": "supabase logout",
-    "s:reset": "supabase db reset"
+    "s:reset": "supabase db reset",
+    "start": "npx serve -s dist"
   },
   "dependencies": {
     "@nuxtjs/supabase": "^1.4.0",
