@@ -5,6 +5,7 @@
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
+    "start": "node .output/server/index.mjs",
     "dev-s": "supabase stop && supabase start && nuxt dev ",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
@@ -20,8 +21,7 @@
     "s:lista": "supabase projects list",
     "s:projeto": "supabase link --project-ref",
     "s:logout": "supabase logout",
-    "s:reset": "supabase db reset",
-    "start": "npx serve -s dist"
+    "s:reset": "supabase db reset"
   },
   "dependencies": {
     "@nuxtjs/supabase": "^1.4.0",
