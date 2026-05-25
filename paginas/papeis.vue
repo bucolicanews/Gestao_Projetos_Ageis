@@ -11,7 +11,9 @@
     <!-- Formulário criar/editar -->
     <div v-if="formulario" class="cartao mb-6">
       <h3 class="font-semibold mb-4">{{ editando ? 'Editar papel' : 'Novo papel' }}</h3>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+      <!-- Campos básicos -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div class="sm:col-span-1">
           <label class="text-xs text-slate-500 block mb-1">Nome *</label>
           <input
@@ -43,7 +45,54 @@
         </div>
       </div>
 
-      <p v-if="erro" class="text-xs text-perigo mt-2">{{ erro }}</p>
+      <!-- Editor de permissões -->
+      <div class="border-t pt-4">
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="text-sm font-semibold text-slate-700">Permissões</h4>
+          <div class="flex gap-2">
+            <button
+              type="button"
+              class="text-xs text-primaria hover:underline"
+              @click="marcarTodas"
+            >Marcar todas</button>
+            <span class="text-slate-300">|</span>
+            <button
+              type="button"
+              class="text-xs text-slate-400 hover:underline"
+              @click="desmarcarTodas"
+            >Desmarcar</button>
+          </div>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div v-for="grupo in grupos" :key="grupo.nome">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+              {{ grupo.nome }}
+            </p>
+            <div class="space-y-1.5">
+              <label
+                v-for="perm in grupo.permissoes"
+                :key="perm.chave"
+                class="flex items-center gap-2 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  :value="perm.chave"
+                  v-model="form.permissoes"
+                  class="w-4 h-4 rounded accent-primaria"
+                />
+                <span class="text-sm text-slate-700">{{ perm.label }}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-xs text-slate-400 mt-3">
+          {{ form.permissoes.length }} de {{ totalPermissoes }} permissões selecionadas
+        </p>
+      </div>
+
+      <p v-if="erro" class="text-xs text-perigo mt-3">{{ erro }}</p>
 
       <div class="flex gap-2 mt-4">
         <button
@@ -67,7 +116,6 @@
         :key="p.id"
         class="cartao flex items-start gap-3 group"
       >
-        <!-- Indicador de cor -->
         <div
           class="w-3 h-3 rounded-full mt-1 shrink-0"
           :style="{ background: p.cor }"
@@ -76,6 +124,9 @@
         <div class="flex-1 min-w-0">
           <div class="font-semibold text-slate-800">{{ p.nome }}</div>
           <div v-if="p.descricao" class="text-xs text-slate-400 mt-0.5">{{ p.descricao }}</div>
+          <div class="text-xs text-slate-300 mt-1">
+            {{ p.permissoes?.length ?? 0 }} permissão(ões)
+          </div>
         </div>
 
         <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
@@ -103,6 +154,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import { PERMISSOES_DISPONIVEIS } from '~/servicos/servicoPapeis'
 
 export default defineComponent({
   name: 'PaginaPapeis',
@@ -118,8 +170,23 @@ export default defineComponent({
       form: {
         nome: '',
         descricao: '',
-        cor: '#6366f1'
+        cor: '#6366f1',
+        permissoes: [] as string[],
       }
+    }
+  },
+
+  computed: {
+    grupos() {
+      const mapa = new Map<string, { nome: string; permissoes: typeof PERMISSOES_DISPONIVEIS[number][] }>()
+      for (const p of PERMISSOES_DISPONIVEIS) {
+        if (!mapa.has(p.grupo)) mapa.set(p.grupo, { nome: p.grupo, permissoes: [] })
+        mapa.get(p.grupo)!.permissoes.push(p)
+      }
+      return [...mapa.values()]
+    },
+    totalPermissoes() {
+      return PERMISSOES_DISPONIVEIS.length
     }
   },
 
@@ -139,14 +206,19 @@ export default defineComponent({
 
     abrirNovo() {
       this.editando = null
-      this.form = { nome: '', descricao: '', cor: '#6366f1' }
+      this.form = { nome: '', descricao: '', cor: '#6366f1', permissoes: [] }
       this.erro = ''
       this.formulario = true
     },
 
     abrirEdicao(p: any) {
       this.editando = p
-      this.form = { nome: p.nome, descricao: p.descricao || '', cor: p.cor || '#6366f1' }
+      this.form = {
+        nome: p.nome,
+        descricao: p.descricao || '',
+        cor: p.cor || '#6366f1',
+        permissoes: [...(p.permissoes ?? [])],
+      }
       this.erro = ''
       this.formulario = true
     },
@@ -154,6 +226,14 @@ export default defineComponent({
     cancelar() {
       this.formulario = false
       this.editando = null
+    },
+
+    marcarTodas() {
+      this.form.permissoes = PERMISSOES_DISPONIVEIS.map(p => p.chave) as string[]
+    },
+
+    desmarcarTodas() {
+      this.form.permissoes = []
     },
 
     async salvar() {

@@ -67,22 +67,22 @@ export default defineComponent({
   },
 
   methods: {
-    async resolverOrgDoConvite(): Promise<string | null> {
+    async resolverConvite(): Promise<{ organizacao_id: string; projeto_id: string; perfil: string } | null> {
       if (!this.tokenConvite) return null
       const cliente = useSupabaseClient()
-      const { data: convite } = await cliente
+      // Busca tudo do convite em uma query — sem join em projetos (que exige auth)
+      const { data } = await cliente
         .from('convites_projeto')
-        .select('projeto_id')
+        .select('organizacao_id, projeto_id, papel')
         .eq('token', this.tokenConvite)
         .is('usado_em', null)
         .single()
-      if (!convite?.projeto_id) return null
-      const { data: proj } = await cliente
-        .from('projetos')
-        .select('organizacao_id')
-        .eq('id', convite.projeto_id)
-        .single()
-      return proj?.organizacao_id ?? null
+      if (!data?.organizacao_id) return null
+      return {
+        organizacao_id: data.organizacao_id,
+        projeto_id: data.projeto_id,
+        perfil: data.papel ?? 'desenvolvedor',
+      }
     },
 
     async enviar() {
@@ -93,13 +93,17 @@ export default defineComponent({
       this.erro = ''
 
       try {
-        const organizacao_id = await this.resolverOrgDoConvite()
+        const convite = await this.resolverConvite()
         const redirect = typeof window !== 'undefined'
           ? `${window.location.origin}/confirmar`
           : undefined
 
         const metadata: Record<string, string> = { nome: this.nome }
-        if (organizacao_id) metadata.organizacao_id = organizacao_id
+        if (convite) {
+          metadata.organizacao_id = convite.organizacao_id
+          metadata.projeto_id     = convite.projeto_id
+          metadata.perfil         = convite.perfil
+        }
 
         const { error } = await cliente.auth.signUp({
           email: this.email,
