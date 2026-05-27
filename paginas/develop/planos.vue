@@ -120,7 +120,7 @@
         v-if="modalAberto"
         :plano="planoEditando"
         @fechar="fecharModal"
-        @salvo="fecharModal"
+        @salvo="aoSalvar"
       />
     </template>
   </div>
@@ -154,6 +154,11 @@ function abrirEdicao(plano: Plano) {
 function fecharModal() {
   modalAberto.value = false
   planoEditando.value = null
+}
+
+async function aoSalvar() {
+  fecharModal()
+  await loja.carregar()
 }
 
 function confirmarExclusao(plano: Plano) {

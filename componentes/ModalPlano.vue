@@ -109,6 +109,22 @@
           </ul>
         </div>
 
+        <!-- Gratuito -->
+        <label class="flex items-center gap-3 cursor-pointer select-none">
+          <div class="relative">
+            <input type="checkbox" class="sr-only" v-model="form.gratuito" />
+            <div class="w-10 h-6 rounded-full transition"
+              :class="form.gratuito ? 'bg-green-500' : 'bg-slate-200'">
+              <div class="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform"
+                :class="form.gratuito ? 'translate-x-5' : 'translate-x-1'" />
+            </div>
+          </div>
+          <div>
+            <span class="text-sm font-medium text-slate-700">Plano gratuito</span>
+            <p class="text-xs text-slate-400">Sem necessidade de método de pagamento para assinar</p>
+          </div>
+        </label>
+
         <!-- Ativo -->
         <label class="flex items-center gap-3 cursor-pointer select-none">
           <div class="relative">
@@ -168,6 +184,7 @@ const form = reactive<PlanoInput>({
   recursos:     props.plano?.recursos     ? [...props.plano.recursos] : [],
   dias_trial:   props.plano?.dias_trial   ?? 14,
   max_usuarios: props.plano?.max_usuarios ?? 0,
+  gratuito:     props.plano?.gratuito     ?? false,
   ativo:        props.plano?.ativo        ?? true,
 })
 
@@ -217,6 +234,7 @@ async function salvar() {
       recursos:     [...form.recursos],
       dias_trial:   form.dias_trial,
       max_usuarios: form.max_usuarios,
+      gratuito:     form.gratuito,
       ativo:        form.ativo,
     }
     let resultado: Plano

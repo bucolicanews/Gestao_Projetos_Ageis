@@ -4,10 +4,17 @@ export const servicoOrganizacao = () => {
 
   async function minha() {
     const userId = (await cliente.auth.getUser()).data.user?.id ?? ''
+    // Get org_id from user record (works for both owners and members)
+    const { data: u } = await cliente
+      .from('usuarios')
+      .select('organizacao_id')
+      .eq('id', userId)
+      .single()
+    if (!u?.organizacao_id) return null
     const { data } = await cliente
       .from('organizacoes')
       .select('*, planos(id, titulo, descricao, preco, recursos)')
-      .eq('dono_id', userId)
+      .eq('id', u.organizacao_id)
       .maybeSingle()
     return data as {
       id: string; nome: string; plano: string; plano_id: string | null
@@ -29,12 +36,32 @@ export const servicoOrganizacao = () => {
   }
 
   async function meuPerfil() {
+    const userId = (await cliente.auth.getUser()).data.user?.id ?? ''
     const { data } = await cliente
       .from('usuarios')
       .select('perfil, organizacao_id')
-      .eq('id', (await cliente.auth.getUser()).data.user?.id ?? '')
+      .eq('id', userId)
       .single()
-    return data
+    if (!data) return null
+
+    // Fetch custom role name from first project membership
+    let nomePapel = ''
+    const { data: membro } = await cliente
+      .from('membros_projeto')
+      .select('papel')
+      .eq('usuario_id', userId)
+      .limit(1)
+      .maybeSingle()
+    if (membro?.papel) {
+      const { data: papel } = await cliente
+        .from('papeis_projeto')
+        .select('nome')
+        .eq('id', membro.papel)
+        .maybeSingle()
+      nomePapel = papel?.nome || ''
+    }
+
+    return { ...data, nomePapel }
   }
 
   return { minha, atualizar, meuPerfil }

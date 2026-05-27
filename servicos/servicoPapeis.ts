@@ -73,7 +73,6 @@ export const PERMISSOES_DISPONIVEIS = [
   // Equipe
   { chave: 'convidar_usuario',    label: 'Convidar usuários',           grupo: 'Equipe'   },
   { chave: 'gerenciar_usuarios',  label: 'Gerenciar usuários',          grupo: 'Equipe'   },
-  { chave: 'promover_admin',      label: 'Promover Administradores',    grupo: 'Equipe'   },
   // Sprints
   { chave: 'gerenciar_sprint',    label: 'Gerenciar sprints',           grupo: 'Sprints'  },
   { chave: 'aprovar_demanda',     label: 'Aprovar demandas',            grupo: 'Sprints'  },
@@ -81,7 +80,8 @@ export const PERMISSOES_DISPONIVEIS = [
   { chave: 'ver_relatorios',      label: 'Visualizar relatórios',       grupo: 'Relatórios' },
   { chave: 'ver_logs',            label: 'Visualizar logs e auditorias',grupo: 'Relatórios' },
   // Sistema
+  { chave: 'editar_papeis',       label: 'Editar papéis',               grupo: 'Sistema'  },
+  { chave: 'editar_plano',        label: 'Editar meu Plano',            grupo: 'Sistema'  },
   { chave: 'configuracoes_globais', label: 'Configurações globais',     grupo: 'Sistema'  },
   { chave: 'acessar_faturamento', label: 'Acessar faturamento',         grupo: 'Sistema'  },
-  { chave: 'excluir_organizacao', label: 'Excluir organização',         grupo: 'Sistema'  },
 ] as const

@@ -7,8 +7,23 @@
         ← Voltar aos planos
       </NuxtLink>
 
-      <!-- Sucesso -->
-      <div v-if="etapa === 'sucesso'"
+      <!-- Sucesso gratuito -->
+      <div v-if="etapa === 'sucesso' && plano?.gratuito"
+        class="bg-white rounded-2xl border border-green-200 shadow p-10 text-center">
+        <div class="text-5xl mb-4">🎁</div>
+        <h2 class="text-2xl font-bold text-slate-900 mb-2">Plano ativado gratuitamente!</h2>
+        <p class="text-slate-500 mb-1">
+          Seu plano <strong>{{ plano?.titulo }}</strong> está ativo.
+        </p>
+        <p v-if="fimGratis" class="text-sm font-semibold text-green-700 mb-6">
+          Gratuito até {{ fimGratis }}
+        </p>
+        <p v-else class="text-sm text-slate-400 mb-6">Sem data de expiração</p>
+        <NuxtLink to="/" class="botao-primario px-6 py-3">Acessar o sistema →</NuxtLink>
+      </div>
+
+      <!-- Sucesso pago -->
+      <div v-else-if="etapa === 'sucesso'"
         class="bg-white rounded-2xl border border-green-200 shadow p-10 text-center">
         <div class="text-5xl mb-4">🎉</div>
         <h2 class="text-2xl font-bold text-slate-900 mb-2">Pagamento confirmado!</h2>
@@ -45,8 +60,14 @@
               <p class="text-sm text-slate-500 mt-0.5">{{ plano.descricao }}</p>
             </div>
             <div class="text-right shrink-0">
-              <span class="text-2xl font-extrabold text-slate-900">R$ {{ formatarPreco(plano.preco) }}</span>
-              <span class="text-slate-400 text-xs block">/mês</span>
+              <template v-if="plano.gratuito">
+                <span class="text-2xl font-extrabold text-green-600">Grátis</span>
+                <span class="text-slate-400 text-xs block">sem pagamento</span>
+              </template>
+              <template v-else>
+                <span class="text-2xl font-extrabold text-slate-900">R$ {{ formatarPreco(plano.preco) }}</span>
+                <span class="text-slate-400 text-xs block">/mês</span>
+              </template>
             </div>
           </div>
           <ul class="mt-4 flex flex-wrap gap-2">
@@ -146,8 +167,38 @@
           </button>
         </div>
 
+        <!-- Ativação gratuita -->
+        <div v-if="etapa === 'metodos' && plano.gratuito" class="bg-white rounded-2xl border border-green-200 shadow-sm p-8 text-center">
+          <div class="text-4xl mb-3">🎁</div>
+          <h3 class="text-lg font-bold text-slate-900 mb-1">Este plano é gratuito</h3>
+
+          <!-- Valor -->
+          <div class="my-4">
+            <span class="text-3xl font-extrabold text-green-600">R$ 0,00</span>
+            <span class="text-slate-400 text-sm ml-1">/mês</span>
+          </div>
+
+          <!-- Dias trial e data de término -->
+          <div v-if="plano.dias_trial > 0" class="bg-green-50 rounded-xl px-4 py-3 mb-5 inline-block text-left">
+            <p class="text-sm font-semibold text-green-800">
+              {{ plano.dias_trial }} dias gratuitos
+            </p>
+            <p class="text-xs text-green-600 mt-0.5">
+              Ativo até {{ previsaoFim(plano.dias_trial) }}
+            </p>
+          </div>
+          <p v-else class="text-sm text-slate-500 mb-5">Sem data de expiração</p>
+
+          <div class="block">
+            <button class="botao-primario px-8 py-3" :disabled="ativando" @click="ativarGratis">
+              {{ ativando ? 'Ativando...' : 'Ativar gratuitamente →' }}
+            </button>
+          </div>
+          <p v-if="erroGratis" class="text-sm text-perigo mt-3">{{ erroGratis }}</p>
+        </div>
+
         <!-- Métodos de pagamento -->
-        <div v-if="etapa === 'metodos'" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <div v-if="etapa === 'metodos' && !plano.gratuito" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
           <h3 class="font-bold text-slate-800 mb-5">Escolha o método de pagamento</h3>
 
           <div class="flex flex-col gap-3">
@@ -269,6 +320,15 @@ const pixData  = ref<{ qr_code: string; qr_code_text: string; order_id: string }
 const cpf      = ref('')
 const copiado  = ref(false)
 const precisaCpf = ref(false)
+const ativando  = ref(false)
+const erroGratis = ref('')
+const fimGratis = ref('')
+
+function previsaoFim(dias: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() + dias)
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
 
 function formatarPreco(v: number) {
   return Number(v).toFixed(2).replace('.', ',')
@@ -332,6 +392,26 @@ function copiarPix() {
   }
 }
 
+async function ativarGratis() {
+  ativando.value = true
+  erroGratis.value = ''
+  try {
+    const res = await $fetch<{ ok: boolean; vencimento: string | null; dias_trial: number }>('/api/assinar-gratis', {
+      method: 'POST',
+      body: { plano_id: planoId.value },
+    })
+    if (res.vencimento) {
+      const [ano, mes, dia] = res.vencimento.split('-')
+      fimGratis.value = `${dia}/${mes}/${ano}`
+    }
+    etapa.value = 'sucesso'
+  } catch (e: any) {
+    erroGratis.value = e?.data?.message ?? e?.message ?? 'Erro ao ativar plano'
+  } finally {
+    ativando.value = false
+  }
+}
+
 // Verifica retorno Stripe success
 onMounted(async () => {
   if (route.query.payment === 'success') etapa.value = 'sucesso'
@@ -339,7 +419,7 @@ onMounted(async () => {
   if (!planoId.value) { carregando.value = false; return }
 
   const [planoData, gatewaysData] = await Promise.all([
-    cliente.from('planos').select('id, titulo, descricao, preco, recursos').eq('id', planoId.value).maybeSingle(),
+    cliente.from('planos').select('id, titulo, descricao, preco, recursos, gratuito, dias_trial').eq('id', planoId.value).maybeSingle(),
     pag.carregarGateways(),
   ])
   plano.value   = planoData.data

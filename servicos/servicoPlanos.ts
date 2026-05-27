@@ -8,6 +8,7 @@ export interface Plano {
   recursos: string[]
   dias_trial: number
   max_usuarios: number
+  gratuito: boolean
   ativo: boolean
   criado_em: string
   atualizado_em: string

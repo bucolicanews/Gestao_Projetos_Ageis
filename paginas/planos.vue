@@ -8,10 +8,37 @@
       </p>
     </section>
 
+    <!-- Banner trial ativo -->
+    <div v-if="usuario && !planoAtualId && emTrial"
+      class="bg-indigo-50 border-b border-indigo-100 py-4 px-6 text-center">
+      <p class="text-indigo-700 text-sm font-medium">
+        Você está no período de teste gratuito de 14 dias.
+        <NuxtLink to="/" class="underline font-bold ml-2">Acessar o painel →</NuxtLink>
+      </p>
+    </div>
+
     <!-- Cards dos planos -->
     <section class="py-16 px-6 bg-white">
       <div v-if="carregando" class="text-center text-slate-400 py-12">Carregando planos...</div>
-      <div v-else class="max-w-5xl mx-auto grid md:grid-cols-3 gap-6">
+      <template v-else>
+
+        <!-- Card Testar Grátis (visitante) -->
+        <div v-if="!usuario" class="max-w-7xl mx-auto mb-8">
+          <div class="rounded-2xl border-2 border-dashed border-primaria/40 bg-indigo-50/50 p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div>
+              <div class="inline-flex items-center gap-1.5 text-xs font-bold text-primaria uppercase tracking-wide mb-2">
+                ✦ Sem cartão de crédito
+              </div>
+              <h3 class="text-2xl font-extrabold text-slate-900 mb-1">Testar grátis por 14 dias</h3>
+              <p class="text-sm text-slate-500">Acesso completo a todos os recursos. Cancele quando quiser.</p>
+            </div>
+            <NuxtLink to="/cadastro" class="botao-primario px-8 py-3 text-base shrink-0">
+              Começar trial gratuito →
+            </NuxtLink>
+          </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-6">
         <div
           v-for="(plano, i) in planos"
           :key="plano.id"
@@ -44,8 +71,14 @@
           <p class="text-sm text-slate-500 mb-5">{{ plano.descricao }}</p>
 
           <div class="mb-6">
-            <span class="text-4xl font-extrabold text-slate-900">R$ {{ formatarPreco(plano.preco) }}</span>
-            <span class="text-slate-400 text-sm">/mês</span>
+            <template v-if="plano.gratuito">
+              <span class="text-4xl font-extrabold text-green-600">Grátis</span>
+              <span class="text-slate-400 text-sm ml-1">para sempre</span>
+            </template>
+            <template v-else>
+              <span class="text-4xl font-extrabold text-slate-900">R$ {{ formatarPreco(plano.preco) }}</span>
+              <span class="text-slate-400 text-sm">/mês</span>
+            </template>
           </div>
 
           <!-- Recursos -->
@@ -66,10 +99,11 @@
                 ? 'bg-primaria text-white hover:bg-indigo-700'
                 : 'border border-slate-200 text-slate-700 hover:border-primaria hover:text-primaria'"
           >
-            {{ planoAtualId === plano.id ? '🔄 Renovar' : planoAtualId ? '⬆ Trocar para ' + plano.titulo : 'Assinar ' + plano.titulo }} →
+            {{ planoAtualId === plano.id ? '🔄 Renovar' : planoAtualId ? '⬆ Trocar para ' + plano.titulo : plano.gratuito ? 'Ativar ' + plano.titulo + ' grátis' : 'Assinar ' + plano.titulo }} →
           </NuxtLink>
-        </div>
-      </div>
+        </div><!-- /card -->
+        </div><!-- /grid -->
+      </template>
     </section>
 
     <!-- FAQ / garantia -->
@@ -104,6 +138,7 @@ const cliente  = useSupabaseClient()
 const carregando = ref(true)
 const planos   = ref<any[]>([])
 const planoAtualId = ref<string | null>(null)
+const emTrial  = ref(false)
 
 function formatarPreco(v: number) {
   return Number(v).toFixed(2).replace('.', ',')
@@ -112,17 +147,18 @@ function formatarPreco(v: number) {
 onMounted(async () => {
   const planosReq = cliente
     .from('planos')
-    .select('id, titulo, descricao, preco, recursos, imagem_url')
+    .select('id, titulo, descricao, preco, recursos, imagem_url, gratuito')
     .eq('ativo', true)
     .order('preco', { ascending: true })
 
   if (usuario.value) {
     const [{ data: pData }, orgReq] = await Promise.all([
       planosReq,
-      cliente.from('organizacoes').select('plano_id').eq('dono_id', usuario.value.id).maybeSingle(),
+      cliente.from('organizacoes').select('plano_id, status').eq('dono_id', usuario.value.id).maybeSingle(),
     ])
     planos.value = pData ?? []
     planoAtualId.value = orgReq.data?.plano_id ?? null
+    emTrial.value = orgReq.data?.status === 'trial'
   } else {
     const { data } = await planosReq
     planos.value = data ?? []

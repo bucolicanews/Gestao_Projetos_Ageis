@@ -11,7 +11,7 @@
           <option value="">Todos os projetos</option>
           <option v-for="p in loja.projetos" :key="p.id" :value="p.id">{{ p.nome }}</option>
         </select>
-        <button v-if="projetoId" class="botao-secundario text-sm" @click="abrirConvite">✉ Convidar</button>
+        <button v-if="projetoId && temPermissao('convidar_usuario')" class="botao-secundario text-sm" @click="abrirConvite">✉ Convidar</button>
       </div>
     </div>
 
@@ -171,7 +171,8 @@
               v-model="formEditar.perfil"
               class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-indigo-400"
             >
-              <option v-for="r in PAPEIS" :key="r.codigo" :value="r.codigo">{{ r.nome }}</option>
+              <option value="">Selecione um papel...</option>
+              <option v-for="r in PAPEIS_SISTEMA" :key="r.codigo" :value="r.codigo">{{ r.nome }}</option>
             </select>
           </div>
           <div v-if="projetoId && membroDe(usuarioEditando?.id)">
@@ -180,7 +181,8 @@
               v-model="formEditar.papel"
               class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-indigo-400"
             >
-              <option v-for="r in PAPEIS" :key="r.codigo" :value="r.codigo">{{ r.nome }}</option>
+              <option value="">Selecione um papel...</option>
+              <option v-for="r in papeis" :key="r.id" :value="r.id">{{ r.nome }}</option>
             </select>
           </div>
           <div class="flex items-center justify-between pt-1">
@@ -231,7 +233,7 @@
           class="w-full px-3 py-2 border rounded-lg text-sm mb-4 focus:outline-none focus:border-indigo-400"
         >
           <option value="">Selecione um papel...</option>
-          <option v-for="r in PAPEIS" :key="r.codigo" :value="r.codigo">{{ r.nome }}</option>
+          <option v-for="r in papeis" :key="r.id" :value="r.id">{{ r.nome }}</option>
         </select>
         <div class="flex gap-2 justify-end">
           <button class="px-4 py-2 text-sm text-slate-600" @click="modalAddAberto = false">Cancelar</button>
@@ -254,6 +256,12 @@
       <div class="bg-white rounded-xl p-6 w-[420px] shadow-xl">
         <h3 class="font-semibold text-slate-800 mb-4">Convidar por e-mail</h3>
         <input
+          v-model="nomeConvite"
+          type="text"
+          placeholder="Nome do convidado (opcional)"
+          class="w-full px-3 py-2 border rounded-lg text-sm mb-3 focus:outline-none focus:border-indigo-400"
+        />
+        <input
           v-model="emailConvite"
           type="email"
           placeholder="email@empresa.com"
@@ -264,7 +272,7 @@
           class="w-full px-3 py-2 border rounded-lg text-sm mb-4 focus:outline-none focus:border-indigo-400"
         >
           <option value="">Selecione um papel...</option>
-          <option v-for="r in PAPEIS" :key="r.codigo" :value="r.codigo">{{ r.nome }}</option>
+          <option v-for="r in papeis" :key="r.id" :value="r.id">{{ r.nome }}</option>
         </select>
         <div v-if="linkConvite" class="p-3 bg-green-50 border border-green-200 rounded-lg mb-4">
           <p class="text-xs font-semibold text-green-700 mb-2">Link gerado:</p>
@@ -316,32 +324,49 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import type { Papel } from '~/servicos/servicoPapeis'
 
-// 'admin' removido: administrador é criado apenas no cadastro (dono da org)
-const PAPEIS = [
-  { codigo: 'desenvolvedor', nome: 'Desenvolvedor' },
-  { codigo: 'engenheiro_software', nome: 'Engenheiro de Software' },
-  { codigo: 'gerente_projeto', nome: 'Gerente de Projeto' },
-  { codigo: 'lider_equipe', nome: 'Líder de Equipe' },
-  { codigo: 'analista_qualidade', nome: 'Qualidade / QA' },
-  { codigo: 'designer', nome: 'Designer UX/UI' },
+const papeis = ref<Papel[]>([])
+
+// System-level roles: control platform access only
+const PAPEIS_SISTEMA = [
+  { codigo: 'membro',        nome: 'Membro' },
+  { codigo: 'admin',         nome: 'Administrador' },
+  { codigo: 'develop_admin', nome: 'Dev Admin' },
 ]
 
-const COR_PAPEL: Record<string, string> = {
-  desenvolvedor: 'bg-purple-100 text-purple-700',
-  admin: 'bg-blue-100 text-blue-700',
-  engenheiro_software: 'bg-cyan-100 text-cyan-700',
-  gerente_projeto: 'bg-amber-100 text-amber-700',
-  lider_equipe: 'bg-green-100 text-green-700',
-  analista_qualidade: 'bg-emerald-100 text-emerald-700',
-  designer: 'bg-pink-100 text-pink-700',
-}
+const COR_TAILWIND = [
+  'bg-purple-100 text-purple-700',
+  'bg-cyan-100 text-cyan-700',
+  'bg-amber-100 text-amber-700',
+  'bg-green-100 text-green-700',
+  'bg-emerald-100 text-emerald-700',
+  'bg-pink-100 text-pink-700',
+  'bg-indigo-100 text-indigo-700',
+  'bg-orange-100 text-orange-700',
+]
 
 const route = useRoute()
 const loja = useLojaProjetos()
 const cliente = useSupabaseClient()
 const svcEquipe = servicoEquipe()
+const usuarioAtual = useSupabaseUser()
+
+const minhasPermissoes = computed((): string[] => {
+  if (!usuarioAtual.value) return []
+  const eu = usuarios.value.find(u => u.id === usuarioAtual.value!.id)
+  if (eu?.perfil === 'admin' || eu?.perfil === 'develop_admin') return ['*']
+  const membro = membroDe(usuarioAtual.value.id)
+  if (!membro?.papel) return []
+  const papel = papeis.value.find(p => p.id === membro.papel)
+  return papel?.permissoes ?? []
+})
+
+function temPermissao(chave: string): boolean {
+  const p = minhasPermissoes.value
+  return p.includes('*') || p.includes(chave)
+}
 
 const projetoId = ref(String(route.query.projeto ?? ''))
 const usuarios = ref<any[]>([])
@@ -366,8 +391,9 @@ const papelNovo = ref('')
 // Modal convite
 const modalConviteAberto = ref(false)
 const emailConvite = ref('')
+const nomeConvite  = ref('')
 const papelConvite = ref('')
-const linkConvite = ref('')
+const linkConvite  = ref('')
 
 // ---- helpers ----
 
@@ -396,12 +422,13 @@ function inicial(nome?: string) {
   return (nome || '?').charAt(0).toUpperCase()
 }
 
-function nomePapel(codigo: string) {
-  return PAPEIS.find(p => p.codigo === codigo)?.nome || codigo
+function nomePapel(id: string) {
+  return papeis.value.find(p => p.id === id)?.nome || id
 }
 
-function corPapel(codigo: string) {
-  return COR_PAPEL[codigo] || 'bg-slate-100 text-slate-600'
+function corPapel(id: string) {
+  const idx = papeis.value.findIndex(p => p.id === id)
+  return idx >= 0 ? COR_TAILWIND[idx % COR_TAILWIND.length] : 'bg-slate-100 text-slate-600'
 }
 
 // ---- carregamento ----
@@ -563,8 +590,9 @@ async function adicionarAoProjeto() {
 
 function abrirConvite() {
   emailConvite.value = ''
+  nomeConvite.value  = ''
   papelConvite.value = ''
-  linkConvite.value = ''
+  linkConvite.value  = ''
   modalConviteAberto.value = true
 }
 
@@ -576,12 +604,22 @@ async function gerarConvite() {
   if (!emailConvite.value || !papelConvite.value) return
   salvando.value = true
   try {
+    // Busca nome da org do usuário atual
+    const orgData = await servicoOrganizacao().minha()
     const { data, error } = await cliente
       .from('convites_projeto')
-      .insert({ projeto_id: projetoId.value, email: emailConvite.value, papel: papelConvite.value })
+      .insert({
+        projeto_id:      projetoId.value,
+        email:           emailConvite.value,
+        papel:           papelConvite.value,
+        nome_convidado:  nomeConvite.value || null,
+        nome_org:        orgData?.nome || null,
+      })
       .select().single()
     if (error) throw error
-    linkConvite.value = `${window.location.origin}/cadastro?invite=${data.token}&email=${emailConvite.value}`
+    const params = new URLSearchParams({ invite: data.token, email: emailConvite.value })
+    if (nomeConvite.value) params.set('nome', nomeConvite.value)
+    linkConvite.value = `${window.location.origin}/cadastro?${params.toString()}`
   } catch (e: any) {
     alert(e?.message || 'Erro ao gerar convite')
   } finally {
@@ -597,6 +635,7 @@ watch(projetoId, carregar)
 
 onMounted(async () => {
   if (!loja.projetos.length) await loja.carregar()
+  papeis.value = await servicoPapeis().listar()
   await carregar()
 })
 </script>
