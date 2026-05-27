@@ -37,6 +37,28 @@
         </NuxtLink>
       </nav>
 
+      <!-- Seção develop_admin -->
+      <div v-if="isDevelopAdmin" class="mt-4 pt-3 border-t border-slate-100">
+        <div class="text-[10px] text-purple-500 font-bold uppercase tracking-wider mb-1 px-1">⚙ Sistema</div>
+        <nav class="flex flex-col gap-1">
+          <NuxtLink to="/develop/financeiro" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-purple-50 hover:text-purple-700 text-sm font-medium transition-colors text-slate-600">
+            💰 Financeiro
+          </NuxtLink>
+          <NuxtLink to="/develop/organizacoes" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-purple-50 hover:text-purple-700 text-sm font-medium transition-colors text-slate-600">
+            🏢 Organizações
+          </NuxtLink>
+          <NuxtLink to="/develop/planos" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-purple-50 hover:text-purple-700 text-sm font-medium transition-colors text-slate-600">
+            📦 Planos
+          </NuxtLink>
+          <NuxtLink to="/develop/notificacoes" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-purple-50 hover:text-purple-700 text-sm font-medium transition-colors text-slate-600">
+            🔔 Notificações
+          </NuxtLink>
+          <NuxtLink to="/develop/configuracoes" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-purple-50 hover:text-purple-700 text-sm font-medium transition-colors text-slate-600">
+            🔧 Configurações
+          </NuxtLink>
+        </nav>
+      </div>
+
       <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
         <SinoNotificacoes v-if="usuario" />
         <button @click="sair" class="botao-secundario text-sm px-3 py-1.5">Sair</button>
@@ -56,6 +78,7 @@ const router = useRouter()
 
 const org = ref<{ id: string; nome: string; plano: string } | null>(null)
 const isAdmin = ref(false)
+const isDevelopAdmin = ref(false)
 
 onMounted(async () => {
   if (!usuario.value) return
@@ -63,6 +86,7 @@ onMounted(async () => {
   const [o, perfil] = await Promise.all([svc.minha(), svc.meuPerfil()])
   org.value = o
   isAdmin.value = perfil?.perfil === 'admin'
+  isDevelopAdmin.value = perfil?.perfil === 'develop_admin'
 })
 
 async function sair() {

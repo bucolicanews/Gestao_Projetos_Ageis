@@ -4,7 +4,7 @@ export default defineNuxtRouteMiddleware((to) => {
   if (import.meta.server) return
 
   const usuario = useSupabaseUser()
-  const publicas = ['/login', '/cadastro', '/recuperar-senha', '/confirmar']
+  const publicas = ['/login', '/cadastro', '/recuperar-senha', '/confirmar', '/apresentacao', '/planos', '/assinar']
 
   // Se não está logado e a rota é privada -> manda pro login
   if (!usuario.value && !publicas.includes(to.path)) {
@@ -15,4 +15,5 @@ export default defineNuxtRouteMiddleware((to) => {
   if (usuario.value && (to.path === '/login' || to.path === '/cadastro')) {
     return navigateTo('/')
   }
+  // Rotas /develop/* requerem develop_admin — verificado no composable useDevelopAdmin() de cada página
 })
