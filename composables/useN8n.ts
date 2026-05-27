@@ -48,26 +48,23 @@ export const useN8n = () => {
         throw new Error(`n8n retornou ${response.status}: ${response.statusText}`)
       }
 
-      // Registra no log
-      await svcOrg.registrarMensagem({
+      // Log é best-effort — não bloqueia o sucesso
+      svcOrg.registrarMensagem({
         org_id: payload.org_id,
         tipo: payload.tipo,
         mensagem: payload.mensagem,
         status: 'enviado',
-      })
+      }).catch(() => {})
 
       return true
     } catch (e: any) {
       erro.value = e.message
-      // Tenta registrar falha no log
-      try {
-        await svcOrg.registrarMensagem({
-          org_id: payload.org_id,
-          tipo: payload.tipo,
-          mensagem: payload.mensagem,
-          status: 'falhou',
-        })
-      } catch {}
+      svcOrg.registrarMensagem({
+        org_id: payload.org_id,
+        tipo: payload.tipo,
+        mensagem: payload.mensagem,
+        status: 'falhou',
+      }).catch(() => {})
       return false
     } finally {
       enviando.value = false

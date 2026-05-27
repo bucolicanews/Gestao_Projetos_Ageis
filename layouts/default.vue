@@ -35,6 +35,9 @@
         <NuxtLink to="/papeis" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 hover:text-primaria text-sm font-medium transition-colors">
           🎭 Papéis
         </NuxtLink>
+        <NuxtLink to="/meu-plano" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 hover:text-primaria text-sm font-medium transition-colors">
+          📦 Meu Plano
+        </NuxtLink>
       </nav>
 
       <!-- Seção develop_admin — ClientOnly evita hydration mismatch -->
@@ -44,6 +47,9 @@
         <nav class="flex flex-col gap-1">
           <NuxtLink to="/develop/financeiro" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-purple-50 hover:text-purple-700 text-sm font-medium transition-colors text-slate-600">
             💰 Financeiro
+          </NuxtLink>
+          <NuxtLink to="/develop/pagamentos" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-purple-50 hover:text-purple-700 text-sm font-medium transition-colors text-slate-600">
+            💳 Pagamentos
           </NuxtLink>
           <NuxtLink to="/develop/organizacoes" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-purple-50 hover:text-purple-700 text-sm font-medium transition-colors text-slate-600">
             🏢 Organizações
