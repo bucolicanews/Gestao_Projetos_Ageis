@@ -205,7 +205,7 @@ CREATE TABLE notificacoes_log (
 | 1 — Planos | ✅ Implementado | Migration: `0031_planos.sql` — rodar via `supabase db push` |
 | 2 — Organizações | ✅ Implementado | CRUD + bloqueio + mensagem n8n. Migration: 0033 |
 | 3 — Pagamentos | ⬜ Não iniciado | Doc em PAYMENT_INTEGRATION.md |
-| 4 — Notificações | ⬜ Não iniciado | Canal: **n8n** |
+| 4 — Notificações | ✅ Implementado | Histórico + Configurações webhooks + templates. Falta cron automático. |
 | 5 — Financeiro | ✅ Implementado (parcial) | Métricas completas após Fase 2+3 |
 | 6 — Landing | ⬜ Não iniciado | |
 
