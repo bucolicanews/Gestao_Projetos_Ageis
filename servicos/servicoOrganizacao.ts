@@ -3,10 +3,12 @@ export const servicoOrganizacao = () => {
   const cliente = useSupabaseClient()
 
   async function minha() {
+    const userId = (await cliente.auth.getUser()).data.user?.id ?? ''
     const { data } = await cliente
       .from('organizacoes')
       .select('*')
-      .single()
+      .eq('dono_id', userId)
+      .maybeSingle()
     return data as { id: string; nome: string; plano: string; ativo: boolean; dono_id: string; criado_em: string } | null
   }
 

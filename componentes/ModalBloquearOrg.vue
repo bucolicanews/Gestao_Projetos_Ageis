@@ -39,9 +39,21 @@ const props = defineProps<{ org: OrgAdmin }>()
 const emit = defineEmits<{ fechar: []; atualizado: [] }>()
 
 const svc = servicoOrganizacoesAdmin()
+const n8n = useN8n()
 const motivo = ref('')
 const salvando = ref(false)
 const erro = ref('')
+
+let msgBloqueio = ''
+onMounted(async () => {
+  const cfg = useConfiguracoesSistema()
+  const dados = await cfg.carregar()
+  msgBloqueio = dados.msg_bloqueio ?? ''
+})
+
+function interpolar(tpl: string, vars: Record<string, string>): string {
+  return tpl.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? `{${k}}`)
+}
 
 async function confirmar() {
   salvando.value = true
@@ -51,6 +63,26 @@ async function confirmar() {
       await svc.desbloquear(props.org.id)
     } else {
       await svc.bloquear(props.org.id, motivo.value)
+      // Envia notificação de bloqueio via n8n (não-bloqueante)
+      if (msgBloqueio) {
+        const vars = {
+          nome:       props.org.nome,
+          plano:      props.org.planos?.titulo ?? props.org.plano ?? '',
+          vencimento: props.org.vencimento ?? '',
+          dias:       '',
+        }
+        n8n.enviarMensagem({
+          org_id:   props.org.id,
+          org_nome: props.org.nome,
+          telefone: props.org.telefone ?? '',
+          email:    props.org.email_contato ?? props.org.dono?.email ?? '',
+          mensagem: interpolar(msgBloqueio, vars),
+          tipo:     'bloqueio',
+          plano:    vars.plano,
+          vencimento: props.org.vencimento,
+          motivo:   motivo.value,
+        })
+      }
     }
     emit('atualizado')
     emit('fechar')

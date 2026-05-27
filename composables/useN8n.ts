@@ -13,28 +13,32 @@ export interface N8nPayload {
 
 export const useN8n = () => {
   const cliente = useSupabaseClient()
+  const svcOrg = servicoOrganizacoesAdmin()
   const enviando = ref(false)
   const erro = ref<string | null>(null)
 
-  async function obterWebhook(chave: string): Promise<string | null> {
+  async function obterWebhookUrl(): Promise<string> {
     const { data } = await cliente
       .from('configuracoes_sistema')
-      .select('valor')
-      .eq('chave', chave)
-      .single()
-    return data?.valor ?? null
+      .select('chave, valor')
+      .in('chave', ['n8n_modo', 'n8n_webhook_url_teste', 'n8n_webhook_url_producao'])
+    const map = Object.fromEntries((data ?? []).map((r: any) => [r.chave, r.valor ?? '']))
+    const modo = map['n8n_modo'] ?? 'teste'
+    return modo === 'producao'
+      ? map['n8n_webhook_url_producao']
+      : map['n8n_webhook_url_teste']
   }
 
   async function enviarMensagem(payload: N8nPayload): Promise<boolean> {
     enviando.value = true
     erro.value = null
     try {
-      const webhookUrl = await obterWebhook('n8n_webhook_mensagem')
-      if (!webhookUrl) {
-        throw new Error('Webhook n8n não configurado. Acesse Configurações.')
+      const url = await obterWebhookUrl()
+      if (!url) {
+        throw new Error('URL do webhook n8n não configurada. Acesse Configurações.')
       }
 
-      const response = await fetch(webhookUrl, {
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -45,7 +49,7 @@ export const useN8n = () => {
       }
 
       // Registra no log
-      await servicoOrganizacoesAdmin().registrarMensagem({
+      await svcOrg.registrarMensagem({
         org_id: payload.org_id,
         tipo: payload.tipo,
         mensagem: payload.mensagem,
@@ -57,7 +61,7 @@ export const useN8n = () => {
       erro.value = e.message
       // Tenta registrar falha no log
       try {
-        await servicoOrganizacoesAdmin().registrarMensagem({
+        await svcOrg.registrarMensagem({
           org_id: payload.org_id,
           tipo: payload.tipo,
           mensagem: payload.mensagem,
@@ -70,5 +74,5 @@ export const useN8n = () => {
     }
   }
 
-  return { enviando, erro, enviarMensagem, obterWebhook }
+  return { enviando, erro, enviarMensagem, obterWebhookUrl }
 }

@@ -125,12 +125,30 @@ const n8n = useN8n()
 const sucesso = ref(false)
 const form = reactive({ mensagem: '' })
 
-const templates = [
+const templatesFallback = [
   { label: '⏰ Vencimento próximo', texto: `Olá {nome}! Seu plano {plano} está próximo do vencimento ({vencimento}). Renove agora para manter o acesso.` },
   { label: '❌ Plano vencido',      texto: `Olá {nome}! Seu plano {plano} venceu. Entre em contato para reativar.` },
   { label: '👋 Boas-vindas',        texto: `Olá {nome}! Seja bem-vindo ao sistema. Seu plano {plano} está ativo.` },
   { label: '🔒 Conta bloqueada',    texto: `Olá {nome}! Sua conta foi temporariamente bloqueada. Entre em contato conosco.` },
 ]
+const templates = ref<{ label: string; texto: string }[]>(templatesFallback)
+
+onMounted(async () => {
+  const cfg = useConfiguracoesSistema()
+  const dados = await cfg.carregar()
+  const chaves: Array<{ chave: string; label: string }> = [
+    { chave: 'msg_cadastro',            label: '👋 Boas-vindas' },
+    { chave: 'msg_bloqueio',            label: '🔒 Bloqueio' },
+    { chave: 'msg_mensagem_manual',     label: '💬 Manual' },
+    { chave: 'msg_vencimento_iminente', label: '⚠️ Vencimento iminente' },
+    { chave: 'msg_dia_vencimento',      label: '📅 Dia do vencimento' },
+    { chave: 'msg_apos_vencimento',     label: '🔴 Após vencimento' },
+  ]
+  const doDb = chaves
+    .filter(c => dados[c.chave])
+    .map(c => ({ label: c.label, texto: dados[c.chave] }))
+  if (doDb.length) templates.value = doDb
+})
 
 const mensagemInterpolada = computed(() =>
   form.mensagem
@@ -149,7 +167,7 @@ async function enviar() {
     telefone: props.org.telefone ?? '',
     email: props.org.email_contato ?? props.org.dono?.email ?? '',
     mensagem: mensagemInterpolada.value,
-    tipo: 'manual',
+    tipo: 'mensagem_manual',
     plano: props.org.planos?.titulo ?? props.org.plano ?? '',
     vencimento: props.org.vencimento,
   })

@@ -37,7 +37,8 @@
         </NuxtLink>
       </nav>
 
-      <!-- Seção develop_admin -->
+      <!-- Seção develop_admin — ClientOnly evita hydration mismatch -->
+      <ClientOnly>
       <div v-if="isDevelopAdmin" class="mt-4 pt-3 border-t border-slate-100">
         <div class="text-[10px] text-purple-500 font-bold uppercase tracking-wider mb-1 px-1">⚙ Sistema</div>
         <nav class="flex flex-col gap-1">
@@ -58,6 +59,7 @@
           </NuxtLink>
         </nav>
       </div>
+      </ClientOnly>
 
       <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
         <SinoNotificacoes v-if="usuario" />
