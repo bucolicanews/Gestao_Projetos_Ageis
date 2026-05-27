@@ -1,7 +1,8 @@
 -- 0030_permissoes_papel.sql
 -- Adiciona coluna permissoes (text[]) em papeis_projeto para armazenar
 -- as permissões funcionais de cada papel. UI de edição usa esta coluna.
-
+ALTER TYPE public.papel_app
+ADD VALUE IF NOT EXISTS 'develop_admin';
 ALTER TABLE public.papeis_projeto
   ADD COLUMN IF NOT EXISTS permissoes text[] NOT NULL DEFAULT '{}';
 
