@@ -94,7 +94,7 @@
       </div>
 
       <!-- Tabela de tarefas -->
-      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden overflow-x-auto">
         <table class="w-full text-sm">
           <thead class="bg-slate-50 border-b border-slate-200">
             <tr>
@@ -222,8 +222,8 @@
     />
 
     <!-- Modal mover tarefa única para sprint -->
-    <div v-if="tarefaParaMover" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-      <div class="bg-white rounded-xl p-6 w-80 shadow-xl">
+    <div v-if="tarefaParaMover" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl p-6 w-full max-w-xs shadow-xl">
         <h3 class="font-semibold text-slate-800 mb-1">Mover para sprint</h3>
         <p class="text-sm text-slate-500 mb-4 truncate">{{ tarefaParaMover.titulo }}</p>
         <select v-model="sprintUnica" class="w-full px-3 py-2 border rounded-lg text-sm mb-4 focus:outline-none focus:border-indigo-400">

@@ -52,13 +52,18 @@ export const servicoOrganizacao = () => {
       .eq('usuario_id', userId)
       .limit(1)
       .maybeSingle()
+    const ehUuid = (v: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v)
     if (membro?.papel) {
-      const { data: papel } = await cliente
-        .from('papeis_projeto')
-        .select('nome')
-        .eq('id', membro.papel)
-        .maybeSingle()
-      nomePapel = papel?.nome || ''
+      if (ehUuid(membro.papel)) {
+        const { data: papel } = await cliente
+          .from('papeis_projeto')
+          .select('nome')
+          .eq('id', membro.papel)
+          .maybeSingle()
+        nomePapel = papel?.nome || ''
+      } else {
+        nomePapel = membro.papel
+      }
     }
 
     return { ...data, nomePapel }

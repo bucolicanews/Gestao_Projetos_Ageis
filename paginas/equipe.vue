@@ -144,9 +144,9 @@
     <!-- Modal: editar usuário -->
     <div
       v-if="modalEditarAberto"
-      class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center"
+      class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
     >
-      <div class="bg-white rounded-xl p-6 w-[420px] shadow-xl">
+      <div class="bg-white rounded-xl p-6 w-full max-w-[420px] shadow-xl">
         <h3 class="font-semibold text-slate-800 mb-4">Editar usuário</h3>
         <div class="space-y-3 mb-4">
           <div>
@@ -223,9 +223,9 @@
     <!-- Modal: adicionar ao projeto -->
     <div
       v-if="modalAddAberto"
-      class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center"
+      class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
     >
-      <div class="bg-white rounded-xl p-6 w-80 shadow-xl">
+      <div class="bg-white rounded-xl p-6 w-full max-w-xs shadow-xl">
         <h3 class="font-semibold text-slate-800 mb-1">Adicionar ao projeto</h3>
         <p class="text-sm text-slate-500 mb-4 truncate">{{ usuarioParaAdicionar?.nome }}</p>
         <select
@@ -251,9 +251,9 @@
     <!-- Modal: convite por e-mail -->
     <div
       v-if="modalConviteAberto"
-      class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center"
+      class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
     >
-      <div class="bg-white rounded-xl p-6 w-[420px] shadow-xl">
+      <div class="bg-white rounded-xl p-6 w-full max-w-[420px] shadow-xl">
         <h3 class="font-semibold text-slate-800 mb-4">Convidar por e-mail</h3>
         <input
           v-model="nomeConvite"
@@ -297,9 +297,9 @@
     <!-- Modal: link de acesso -->
     <div
       v-if="modalLinkAberto"
-      class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center"
+      class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
     >
-      <div class="bg-white rounded-xl p-6 w-[420px] shadow-xl">
+      <div class="bg-white rounded-xl p-6 w-full max-w-[420px] shadow-xl">
         <h3 class="font-semibold text-slate-800 mb-1">Link de acesso</h3>
         <p class="text-xs text-slate-500 mb-4">Compartilhe com <strong>{{ emailLink }}</strong></p>
         <div class="flex gap-2 mb-4">

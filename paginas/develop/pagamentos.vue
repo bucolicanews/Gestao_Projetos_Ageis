@@ -6,12 +6,12 @@
 
     <template v-else-if="isDevelopAdmin">
       <!-- Header -->
-      <div class="flex justify-between items-center mb-6">
+      <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
         <div>
           <h1 class="text-2xl font-bold">💳 Métodos de Pagamento</h1>
           <p class="text-sm text-slate-500 mt-0.5">Configure os gateways usados pelas organizações</p>
         </div>
-        <button class="botao-primario" :disabled="cfg.salvando.value" @click="salvar">
+        <button class="botao-primario text-sm" :disabled="cfg.salvando.value" @click="salvar">
           {{ cfg.salvando.value ? 'Salvando...' : '💾 Salvar' }}
         </button>
       </div>

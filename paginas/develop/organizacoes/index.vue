@@ -6,7 +6,7 @@
 
     <template v-else-if="isDevelopAdmin">
       <!-- Header -->
-      <div class="flex justify-between items-center mb-6">
+      <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
         <div>
           <h1 class="text-2xl font-bold">🏢 Organizações</h1>
           <p class="text-sm text-slate-500 mt-0.5">{{ orgs.length }} organização{{ orgs.length !== 1 ? 'ões' : '' }} encontrada{{ orgs.length !== 1 ? 's' : '' }}</p>
@@ -46,7 +46,7 @@
       <div v-if="carregando" class="text-slate-400 text-sm py-8 text-center">Carregando...</div>
 
       <!-- Tabela -->
-      <div v-else class="cartao p-0 overflow-hidden">
+      <div v-else class="cartao p-0 overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
             <tr class="bg-slate-50 border-b border-slate-100">

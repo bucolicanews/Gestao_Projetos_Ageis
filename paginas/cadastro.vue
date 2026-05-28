@@ -92,14 +92,19 @@ onMounted(async () => {
         nome_org:       data.nome_org,
       }
       if (data.nome_convidado && !nome.value) nome.value = data.nome_convidado
-      // Resolve role name: UUID → nome from papeis_projeto
+      // Resolve role name: UUID → nome from papeis_projeto (papel pode ser UUID ou slug como 'admin')
       if (data.papel) {
-        const { data: papelData } = await cliente
-          .from('papeis_projeto')
-          .select('nome')
-          .eq('id', data.papel)
-          .maybeSingle()
-        nomePapelResolvido.value = papelData?.nome || data.papel
+        const ehUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.papel)
+        if (ehUuid) {
+          const { data: papelData } = await cliente
+            .from('papeis_projeto')
+            .select('nome')
+            .eq('id', data.papel)
+            .maybeSingle()
+          nomePapelResolvido.value = papelData?.nome || data.papel
+        } else {
+          nomePapelResolvido.value = data.papel
+        }
       }
     }
   }

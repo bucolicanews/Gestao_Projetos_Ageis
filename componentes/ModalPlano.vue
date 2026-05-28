@@ -26,7 +26,7 @@
         </div>
 
         <!-- Preço + Trial + Usuários -->
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label class="text-sm font-medium text-slate-700 mb-1 block">Preço (R$) *</label>
             <input v-model.number="form.preco" type="number" min="0" step="0.01" required placeholder="99.90"

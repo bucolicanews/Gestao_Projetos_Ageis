@@ -1,12 +1,12 @@
 <template>
   <div>
     <!-- Header -->
-    <div class="flex justify-between items-start mb-6">
+    <div class="flex flex-wrap justify-between items-start mb-6 gap-3">
       <div>
         <NuxtLink to="/projetos" class="text-sm text-primaria hover:underline">
           ← Projetos
         </NuxtLink>
-        <h1 class="text-3xl font-bold mt-1">
+        <h1 class="text-2xl sm:text-3xl font-bold mt-1">
           📊 {{ dash?.projeto?.nome || 'Carregando...' }}
         </h1>
         <p v-if="dash?.projeto?.descricao" class="text-slate-500 text-sm mt-1">
@@ -14,17 +14,17 @@
         </p>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-2">
         <!-- Health score -->
-        <div v-if="dash" class="cartao text-center px-4 py-2 min-w-[80px]">
+        <div v-if="dash" class="cartao text-center px-4 py-2 min-w-[70px]">
           <div :class="corSaude" class="text-2xl font-bold">{{ dash.saude_score }}</div>
           <div class="text-xs text-slate-500">Saúde</div>
         </div>
 
-        <NuxtLink :to="`/kanban?projeto=${projetoId}`" class="botao-secundario">
+        <NuxtLink :to="`/kanban?projeto=${projetoId}`" class="botao-secundario text-sm">
           📌 Kanban
         </NuxtLink>
-        <NuxtLink :to="`/sprints?projeto=${projetoId}`" class="botao-secundario">
+        <NuxtLink :to="`/sprints?projeto=${projetoId}`" class="botao-secundario text-sm">
           🔄 Sprints
         </NuxtLink>
       </div>
@@ -86,7 +86,7 @@
       <!-- WIP atual por coluna -->
       <div class="cartao">
         <h3 class="font-semibold mb-3">📊 WIP atual por coluna</h3>
-        <div class="grid grid-cols-5 gap-3">
+        <div class="grid grid-cols-3 sm:grid-cols-5 gap-3">
           <div v-for="(col, nome) in colunas" :key="nome" class="text-center">
             <div
               class="rounded-lg py-3 px-2"

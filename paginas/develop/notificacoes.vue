@@ -6,12 +6,64 @@
 
     <template v-else-if="isDevelopAdmin">
       <!-- Header -->
-      <div class="flex justify-between items-center mb-6">
+      <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
         <div>
           <h1 class="text-2xl font-bold">🔔 Notificações</h1>
-          <p class="text-sm text-slate-500 mt-0.5">Histórico de mensagens enviadas às organizações</p>
+          <p class="text-sm text-slate-500 mt-0.5">Histórico e envio manual de mensagens</p>
         </div>
         <button class="botao-secundario text-sm" :disabled="carregando" @click="carregar">↻ Atualizar</button>
+      </div>
+
+      <!-- ── Envio Manual ── -->
+      <div class="cartao mb-6">
+        <h2 class="font-semibold text-base mb-4">📨 Envio Manual</h2>
+
+        <div class="flex flex-col gap-4">
+          <!-- Seletor de organização -->
+          <div>
+            <label class="text-sm font-medium text-slate-700 mb-1 block">Organização *</label>
+            <select
+              v-model="envioOrgId"
+              class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primaria"
+            >
+              <option value="">Selecione uma organização...</option>
+              <option v-for="org in orgs" :key="org.id" :value="org.id">
+                {{ org.nome }}
+                <template v-if="org.telefone"> · {{ org.telefone }}</template>
+              </option>
+            </select>
+          </div>
+
+          <!-- Mensagem -->
+          <div>
+            <label class="text-sm font-medium text-slate-700 mb-1 block">Mensagem *</label>
+            <textarea
+              v-model="envioMensagem"
+              rows="4"
+              placeholder="Digite a mensagem que será enviada à organização..."
+              class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primaria resize-none"
+            />
+            <p class="text-xs text-slate-400 mt-1">{{ envioMensagem.length }} caracteres</p>
+          </div>
+
+          <!-- Feedback -->
+          <div v-if="envioFeedback" class="p-3 rounded-xl text-sm flex items-center gap-2"
+            :class="envioFeedback.tipo === 'sucesso' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-perigo'">
+            <span>{{ envioFeedback.tipo === 'sucesso' ? '✓' : '✕' }}</span>
+            {{ envioFeedback.msg }}
+          </div>
+
+          <!-- Botão -->
+          <div class="flex justify-end">
+            <button
+              class="botao-primario text-sm px-6"
+              :disabled="!envioOrgId || !envioMensagem.trim() || enviando"
+              @click="enviarManual"
+            >
+              {{ enviando ? 'Enviando...' : '📤 Enviar notificação' }}
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Filtros -->
@@ -119,13 +171,22 @@ definePageMeta({ layout: 'default' })
 
 const { isDevelopAdmin, verificando } = useDevelopAdmin()
 const cliente = useSupabaseClient()
+const svcAdmin = servicoOrganizacoesAdmin()
+const cfg = useConfiguracoesSistema()
 
 const mensagens = ref<any[]>([])
+const orgs      = ref<any[]>([])
 const carregando = ref(false)
 const erro = ref<string | null>(null)
-const filtroTipo = ref('')
+const filtroTipo   = ref('')
 const filtroStatus = ref('')
-const busca = ref('')
+const busca        = ref('')
+
+// Envio manual
+const envioOrgId    = ref('')
+const envioMensagem = ref('')
+const enviando      = ref(false)
+const envioFeedback = ref<{ tipo: 'sucesso' | 'erro'; msg: string } | null>(null)
 
 const mensagensFiltradas = computed(() => {
   return mensagens.value.filter(m => {
@@ -158,7 +219,83 @@ async function carregar() {
   }
 }
 
-onMounted(() => carregar())
+async function carregarOrgs() {
+  try {
+    orgs.value = await svcAdmin.listarTodas()
+  } catch { /* sem orgs */ }
+}
+
+async function enviarManual() {
+  if (!envioOrgId.value || !envioMensagem.value.trim()) return
+  enviando.value = true
+  envioFeedback.value = null
+
+  const org = orgs.value.find(o => o.id === envioOrgId.value)
+  let statusFinal: 'enviado' | 'falhou' = 'enviado'
+
+  try {
+    // Tenta enviar pelo webhook n8n configurado
+    const configs = await cfg.carregar()
+    const modo = configs['n8n_modo'] || 'producao'
+    const webhookUrl = modo === 'teste'
+      ? configs['n8n_webhook_url_teste']
+      : configs['n8n_webhook_url_producao']
+
+    if (webhookUrl) {
+      const res = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipo: 'notificacao_manual',
+          org_id: envioOrgId.value,
+          org_nome: org?.nome ?? '',
+          telefone: org?.telefone ?? '',
+          mensagem: envioMensagem.value.trim(),
+        }),
+      })
+      if (!res.ok) statusFinal = 'falhou'
+    }
+
+    // Registra no log
+    await svcAdmin.registrarMensagem({
+      org_id: envioOrgId.value,
+      tipo: 'manual',
+      mensagem: envioMensagem.value.trim(),
+      status: statusFinal,
+    })
+
+    envioFeedback.value = {
+      tipo: statusFinal === 'enviado' ? 'sucesso' : 'erro',
+      msg: statusFinal === 'enviado'
+        ? `Notificação enviada para ${org?.nome ?? 'organização'}.`
+        : 'Webhook falhou mas a mensagem foi registrada.',
+    }
+
+    // Limpa formulário e recarrega histórico
+    envioMensagem.value = ''
+    envioOrgId.value = ''
+    await carregar()
+  } catch (e: any) {
+    // Tenta registrar falha no log
+    try {
+      await svcAdmin.registrarMensagem({
+        org_id: envioOrgId.value,
+        tipo: 'manual',
+        mensagem: envioMensagem.value.trim(),
+        status: 'falhou',
+      })
+    } catch { /* ignore */ }
+    envioFeedback.value = { tipo: 'erro', msg: e.message || 'Erro ao enviar.' }
+  } finally {
+    enviando.value = false
+    // Limpa feedback após 5 segundos
+    setTimeout(() => { envioFeedback.value = null }, 5000)
+  }
+}
+
+onMounted(async () => {
+  await Promise.all([carregar(), carregarOrgs()])
+})
 
 function corStatus(status: string) {
   const map: Record<string, string> = {

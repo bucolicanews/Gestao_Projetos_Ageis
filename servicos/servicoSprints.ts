@@ -131,11 +131,10 @@ export const servicoSprints = () => {
   }
 
   async function velocityMedia(projetoId: string): Promise<number> {
-    const { data, error } = await cliente.from('v_velocity_projeto')
+    const { data } = await cliente.from('v_velocity_projeto')
       .select('velocity_media')
       .eq('projeto_id', projetoId)
-      .single()
-    if (error) return 0
+      .maybeSingle()
     return Number((data as any)?.velocity_media || 0)
   }
 

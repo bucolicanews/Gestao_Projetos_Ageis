@@ -1,11 +1,11 @@
 <template>
   <div>
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
       <div>
-        <h1 class="text-3xl font-bold">🎭 Papéis</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold">🎭 Papéis</h1>
         <p class="text-sm text-slate-500 mt-1">Cargos e funções disponíveis para membros de projetos</p>
       </div>
-      <button class="botao-primario" @click="abrirNovo">+ Novo papel</button>
+      <button class="botao-primario text-sm" @click="abrirNovo">+ Novo papel</button>
     </div>
 
     <!-- Formulário criar/editar -->

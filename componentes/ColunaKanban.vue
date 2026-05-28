@@ -1,5 +1,5 @@
 <template>
-  <div class="cartao bg-slate-50 min-h-[400px] flex flex-col">
+  <div class="cartao bg-slate-50 min-h-[400px] flex flex-col min-w-[260px] flex-shrink-0 md:min-w-0 md:flex-1">
     <div class="flex justify-between items-center mb-3">
       <h3 class="font-semibold">
         {{ titulo }}

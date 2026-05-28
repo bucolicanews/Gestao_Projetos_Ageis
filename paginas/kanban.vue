@@ -37,7 +37,7 @@
       Escolha um projeto para visualizar o quadro.
     </div>
 
-    <div v-else class="grid grid-cols-1 md:grid-cols-5 gap-4">
+    <div v-else class="flex gap-4 overflow-x-auto pb-4">
       <ColunaKanban
         v-for="col in COLUNAS"
         :key="col.id"

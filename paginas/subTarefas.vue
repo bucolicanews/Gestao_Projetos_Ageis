@@ -1,7 +1,7 @@
 <template>
     <div class="p-6 max-w-2xl mx-auto">
 
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-slate-800">Subtarefas</h1>
                 <p v-if="!tarefaPaiId" class="text-sm text-amber-600 mt-1">

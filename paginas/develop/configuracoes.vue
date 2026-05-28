@@ -5,7 +5,7 @@
     </div>
 
     <template v-else-if="isDevelopAdmin">
-      <div class="flex justify-between items-center mb-6">
+      <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
         <div>
           <h1 class="text-2xl font-bold">🔧 Configurações</h1>
           <p class="text-sm text-slate-500 mt-0.5">Webhook n8n e regras de notificação</p>

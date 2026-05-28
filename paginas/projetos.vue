@@ -1,11 +1,11 @@
 <template>
   <div>
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-3xl font-bold">
+    <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
+      <h1 class="text-2xl sm:text-3xl font-bold">
         📁 Projetos
       </h1>
 
-      <button class="botao-primario" @click="abrirModal">
+      <button class="botao-primario text-sm" @click="abrirModal">
         + Novo projeto
       </button>
     </div>

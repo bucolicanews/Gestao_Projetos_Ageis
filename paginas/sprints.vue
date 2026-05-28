@@ -19,9 +19,9 @@
 
     <div v-if="!projetoId" class="text-slate-500">Escolha um projeto.</div>
 
-    <div v-else class="grid gap-6 lg:grid-cols-[300px_1fr]">
+    <div v-else class="grid gap-6 lg:grid-cols-[300px_1fr] min-w-0">
       <!-- Sidebar: lista de sprints -->
-      <aside class="space-y-2">
+      <aside :class="['space-y-2 min-w-0', visaoMobile === 'detalhe' ? 'hidden lg:block' : 'block']">
         <div v-if="!loja.sprints.length" class="text-sm text-slate-500 cartao">
           Nenhuma sprint criada.
         </div>
@@ -67,7 +67,11 @@
       </aside>
 
       <!-- Detalhe da sprint -->
-      <section v-if="loja.sprintAtual" class="space-y-4">
+      <section v-if="loja.sprintAtual" :class="['space-y-4 min-w-0 overflow-x-hidden', visaoMobile === 'lista' ? 'hidden lg:block' : 'block']">
+        <!-- Botão voltar (mobile only) -->
+        <button class="lg:hidden flex items-center gap-1 text-sm text-primaria font-medium py-1" @click="visaoMobile = 'lista'">
+          ← Voltar às sprints
+        </button>
         <!-- Header sprint -->
         <div class="cartao">
           <div class="flex justify-between items-start gap-4 flex-wrap">
@@ -103,7 +107,7 @@
         </div>
 
         <!-- Abas -->
-        <div class="flex border-b gap-0">
+        <div class="flex border-b gap-0 overflow-x-auto">
           <button
             v-for="tab in abas"
             :key="tab.id"
@@ -540,7 +544,7 @@
         </div>
       </section>
 
-      <section v-else class="text-slate-500 self-start cartao">
+      <section v-else class="text-slate-500 self-start cartao min-w-0">
         Selecione uma sprint à esquerda para ver os detalhes.
       </section>
     </div>
@@ -603,6 +607,7 @@ export default defineComponent({
       backlogFiltroTipo: '' as string,
       backlogFiltroPrioridade: '' as string,
       backlogFiltroDor: '' as string,
+      visaoMobile: 'lista' as 'lista' | 'detalhe',
       abas: [
         { id: 'planejamento', label: '📋 Planejamento' },
         { id: 'backlog',      label: '🗂 Backlog' },
@@ -711,6 +716,7 @@ export default defineComponent({
     async selecionarSprint(id: string) {
       await this.loja.selecionar(id)
       this.aba = 'planejamento'
+      this.visaoMobile = 'detalhe'
       if (this.projetoId) {
         this.loja.carregarVelocity(this.projetoId)
       }

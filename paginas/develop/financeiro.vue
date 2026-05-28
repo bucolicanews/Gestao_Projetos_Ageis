@@ -6,7 +6,7 @@
 
     <template v-else-if="isDevelopAdmin">
       <!-- Header -->
-      <div class="flex justify-between items-center mb-6">
+      <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
         <div>
           <h1 class="text-2xl font-bold">💰 Dashboard Financeiro</h1>
           <p class="text-sm text-slate-500 mt-0.5">Visão geral de receita e organizações</p>
