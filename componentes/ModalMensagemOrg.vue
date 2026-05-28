@@ -124,6 +124,7 @@ const emit = defineEmits<{ fechar: []; enviado: [] }>()
 const n8n = useN8n()
 const sucesso = ref(false)
 const form = reactive({ mensagem: '' })
+const cliente = useSupabaseClient()
 
 const templatesFallback = [
   { label: '⏰ Vencimento próximo', texto: `Olá {nome}! Seu plano {plano} está próximo do vencimento ({vencimento}). Renove agora para manter o acesso.` },
@@ -161,7 +162,16 @@ const mensagemInterpolada = computed(() =>
 )
 
 async function enviar() {
-  const ok = await n8n.enviarMensagem({
+  // 1. Persiste no sistema primeiro (sino dos usuários)
+  await cliente.rpc('criar_notificacoes_org', {
+    p_org_id:   props.org.id,
+    p_titulo:   '📢 Mensagem do suporte',
+    p_mensagem: mensagemInterpolada.value,
+    p_tipo:     'geral',
+  })
+
+  // 2. Envia via n8n (melhor esforço — não bloqueia se falhar)
+  await n8n.enviarMensagem({
     org_id: props.org.id,
     org_nome: props.org.nome,
     telefone: props.org.telefone ?? '',
@@ -171,10 +181,9 @@ async function enviar() {
     plano: props.org.planos?.titulo ?? props.org.plano ?? '',
     vencimento: props.org.vencimento,
   })
-  if (ok) {
-    sucesso.value = true
-    emit('enviado')
-    setTimeout(() => emit('fechar'), 1500)
-  }
+
+  sucesso.value = true
+  emit('enviado')
+  setTimeout(() => emit('fechar'), 1500)
 }
 </script>

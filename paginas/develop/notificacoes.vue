@@ -75,6 +75,7 @@
           <option value="vencimento_iminente">Vencimento iminente</option>
           <option value="dia_vencimento">Dia do vencimento</option>
           <option value="apos_vencimento">Após vencimento</option>
+          <option value="cobranca">Cobrança (sistema)</option>
         </select>
 
         <select v-model="filtroStatus"
@@ -234,7 +235,15 @@ async function enviarManual() {
   let statusFinal: 'enviado' | 'falhou' = 'enviado'
 
   try {
-    // Tenta enviar pelo webhook n8n configurado
+    // 1. Persiste no sistema primeiro (sino dos usuários) — garante entrega mesmo se n8n falhar
+    await cliente.rpc('criar_notificacoes_org', {
+      p_org_id:   envioOrgId.value,
+      p_titulo:   '📢 Mensagem do suporte',
+      p_mensagem: envioMensagem.value.trim(),
+      p_tipo:     'geral',
+    })
+
+    // 2. Tenta enviar pelo webhook n8n (melhor esforço)
     const configs = await cfg.carregar()
     const modo = configs['n8n_modo'] || 'producao'
     const webhookUrl = modo === 'teste'
@@ -256,7 +265,7 @@ async function enviarManual() {
       if (!res.ok) statusFinal = 'falhou'
     }
 
-    // Registra no log
+    // 3. Registra no log de mensagens
     await svcAdmin.registrarMensagem({
       org_id: envioOrgId.value,
       tipo: 'manual',
@@ -265,10 +274,10 @@ async function enviarManual() {
     })
 
     envioFeedback.value = {
-      tipo: statusFinal === 'enviado' ? 'sucesso' : 'erro',
+      tipo: 'sucesso',
       msg: statusFinal === 'enviado'
         ? `Notificação enviada para ${org?.nome ?? 'organização'}.`
-        : 'Webhook falhou mas a mensagem foi registrada.',
+        : `Notificação entregue no sistema. Webhook externo falhou.`,
     }
 
     // Limpa formulário e recarrega histórico
