@@ -3,14 +3,29 @@
 
     <!-- ── Barra superior — sempre visível ── -->
     <header v-if="usuario" class="sticky top-0 z-30 flex items-center justify-between px-4 py-2 bg-white border-b border-slate-200 shrink-0">
-      <!-- Logo (mobile) / Nome usuário (desktop) -->
+      <!-- Identidade na barra superior -->
       <div class="flex items-center gap-3">
+        <!-- Mobile: nome do app -->
         <span class="font-bold text-primaria text-base md:hidden">Gestão Ágil</span>
+
+        <!-- Desktop: admin → logo + nome da org | usuário → avatar + nome -->
         <div class="hidden md:flex items-center gap-2">
-          <div class="w-7 h-7 rounded-full bg-primaria text-white flex items-center justify-center text-xs font-bold uppercase shrink-0">
-            {{ nomeUsuario.charAt(0) || '?' }}
-          </div>
-          <span class="text-sm font-semibold text-slate-700 truncate max-w-[160px]">{{ nomeUsuario }}</span>
+          <template v-if="isAdmin || isDevelopAdmin">
+            <!-- Logo da organização (admin) -->
+            <div class="w-7 h-7 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
+              <img v-if="logoUrl" :src="logoUrl" class="w-full h-full object-contain p-0.5" alt="" />
+              <span v-else class="text-slate-400 text-xs">🏢</span>
+            </div>
+            <span class="text-sm font-semibold text-slate-700 truncate max-w-[160px]">{{ org?.nome || nomeUsuario }}</span>
+          </template>
+          <template v-else>
+            <!-- Avatar do usuário comum -->
+            <div class="w-7 h-7 rounded-full overflow-hidden bg-primaria text-white flex items-center justify-center text-xs font-bold uppercase shrink-0">
+              <img v-if="avatarUrl" :src="avatarUrl" class="w-full h-full object-cover" alt="" />
+              <span v-else>{{ nomeUsuario.charAt(0) || '?' }}</span>
+            </div>
+            <span class="text-sm font-semibold text-slate-700 truncate max-w-[160px]">{{ nomeUsuario }}</span>
+          </template>
         </div>
       </div>
 
@@ -56,19 +71,22 @@
         </div>
 
         <!-- User card -->
-        <div class="mb-4 flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-full bg-primaria text-white flex items-center justify-center text-sm font-bold shrink-0 uppercase">
-            {{ nomeUsuario.charAt(0) || '?' }}
+        <NuxtLink to="/meu-perfil" class="mb-4 flex items-center gap-2.5 rounded-xl p-1.5 -mx-1.5 hover:bg-slate-100 transition group" @click="menuMobileAberto = false">
+          <div class="w-9 h-9 rounded-full overflow-hidden bg-primaria text-white flex items-center justify-center text-sm font-bold shrink-0 uppercase">
+            <img v-if="avatarUrl" :src="avatarUrl" class="w-full h-full object-cover" alt="" />
+            <span v-else>{{ nomeUsuario.charAt(0) || '?' }}</span>
           </div>
-          <div class="min-w-0">
-            <div class="text-sm font-semibold text-slate-800 truncate" :title="nomeUsuario">{{ nomeUsuario }}</div>
+          <div class="min-w-0 flex-1">
+            <div class="text-sm font-semibold text-slate-800 truncate group-hover:text-primaria transition" :title="nomeUsuario">{{ nomeUsuario }}</div>
             <div class="text-[11px] text-slate-500 truncate">{{ labelRoleSidebar }}</div>
           </div>
-        </div>
+          <span class="text-slate-300 text-xs group-hover:text-primaria transition shrink-0">✏️</span>
+        </NuxtLink>
 
         <!-- Org info -->
         <div class="mb-5 pl-0.5">
           <div class="flex items-center gap-1.5 mb-0.5">
+            <img v-if="logoUrl" :src="logoUrl" class="w-4 h-4 rounded object-contain" alt="" />
             <span class="text-[11px] font-semibold text-slate-700 truncate" :title="org?.nome">{{ org?.nome || 'Carregando...' }}</span>
             <span v-if="org && !isDevelopAdmin" class="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 uppercase font-semibold shrink-0">
               {{ org.plano }}
@@ -194,19 +212,32 @@ function vencendoEmBreve(v: string): boolean {
   return dias <= 7
 }
 
-const isAdmin       = ref(false)
+const isAdmin        = ref(false)
 const isDevelopAdmin = ref(false)
 const labelRoleSidebar = ref('')
-const nomeUsuario   = ref('')
+const nomeUsuario    = ref('')
+const avatarUrl      = ref<string | null>(null)
+const logoUrl        = ref<string | null>(null)
 
 onMounted(async () => {
   if (!usuario.value) return
   nomeUsuario.value = usuario.value.user_metadata?.nome || usuario.value.email || ''
   const svc = servicoOrganizacao()
-  const [o, perfil] = await Promise.all([svc.minha(), svc.meuPerfil()])
+  const [o, perfil, dadosUser] = await Promise.all([
+    svc.minha(),
+    svc.meuPerfil(),
+    cliente.from('usuarios').select('avatar_url').eq('id', usuario.value.id).single(),
+  ])
   org.value = o
   isAdmin.value = perfil?.perfil === 'admin'
   isDevelopAdmin.value = perfil?.perfil === 'develop_admin'
+  avatarUrl.value = (dadosUser.data as any)?.avatar_url || null
+
+  if (o?.id) {
+    const { data: orgData } = await cliente.from('organizacoes').select('logo_url').eq('id', o.id).single()
+    logoUrl.value = (orgData as any)?.logo_url || null
+  }
+
   if (perfil?.nomePapel) {
     labelRoleSidebar.value = perfil.nomePapel
   } else if (perfil?.perfil === 'admin') {
