@@ -8,7 +8,11 @@
 -- 1. Drop unused column
 ALTER TABLE public.usuarios DROP COLUMN IF EXISTS perfil_id;
 
--- 2. Unlock enum on both columns → cast to text
+-- 2. Drop policies that depend on enum columns before altering
+DROP POLICY IF EXISTS "admin_gerencia_convites" ON public.convites_projeto;
+DROP POLICY IF EXISTS "usuarios_update" ON public.usuarios;
+
+-- 3. Unlock enum on both columns → cast to text
 ALTER TABLE public.membros_projeto
   ALTER COLUMN papel TYPE text USING papel::text;
 
@@ -95,3 +99,25 @@ BEGIN
   RETURN new;
 END;
 $$;
+
+-- 7. Recriar policies dropadas
+CREATE POLICY "usuarios_update" ON public.usuarios
+  FOR UPDATE TO authenticated
+  USING (id = auth.uid())
+  WITH CHECK (
+    id = auth.uid()
+    AND perfil NOT IN ('admin', 'develop_admin')
+  );
+
+CREATE POLICY "admin_gerencia_convites" ON public.convites_projeto
+  FOR ALL TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1
+      FROM public.membros_projeto mp
+      JOIN public.papeis_projeto pp ON pp.id = mp.papel::uuid
+      WHERE mp.projeto_id = convites_projeto.projeto_id
+        AND mp.usuario_id = auth.uid()
+        AND pp.nome IN ('admin', 'desenvolvedor')
+    )
+  );
