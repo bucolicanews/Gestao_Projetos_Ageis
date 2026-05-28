@@ -16,12 +16,12 @@
       <div class="mb-5 pl-0.5">
         <div class="flex items-center gap-1.5 mb-0.5">
           <span class="text-[11px] font-semibold text-slate-700 truncate" :title="org?.nome">{{ org?.nome || 'Carregando...' }}</span>
-          <span v-if="org" class="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 uppercase font-semibold shrink-0">
+          <span v-if="org && !isDevelopAdmin" class="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 uppercase font-semibold shrink-0">
             {{ org.plano }}
           </span>
         </div>
         <!-- Vencimento do plano -->
-        <div v-if="vencimentoEfetivo(org)" class="mt-1">
+        <div v-if="vencimentoEfetivo(org) && !isDevelopAdmin" class="mt-1">
           <span
             class="text-[10px] font-medium px-1.5 py-0.5 rounded"
             :class="org!.status === 'trial'
