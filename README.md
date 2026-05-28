@@ -1,6 +1,6 @@
 # Sistema de Gestão de Projetos Ágeis — Nuxt 3 + Supabase
 
-> ⚠️ **Importante:** Este código é **referência** gerada dentro do projeto Lovable.
+> ⚠️ **Importante :** Este código é **referência** gerada dentro do projeto Lovable.
 > O preview do Lovable roda **React/Vite**, então estes arquivos Nuxt **não executam aqui**.
 > Para rodar, copie a pasta `nuxt-reference/` para sua máquina e siga as instruções abaixo.
 
