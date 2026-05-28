@@ -8,11 +8,11 @@ export default defineNuxtRouteMiddleware((to) => {
 
   // Se não está logado e a rota é privada -> manda pro login
   if (!usuario.value && !publicas.includes(to.path)) {
-    return navigateTo('/login')
+    return navigateTo('/apresentacao')
   }
 
   // Se já está logado e tenta abrir login/cadastro -> manda pro dashboard
-  if (usuario.value && (to.path === '/login' || to.path === '/cadastro')) {
+  if (usuario.value && (to.path === '/apresentacao' || to.path === '/cadastro')) {
     return navigateTo('/')
   }
   // Rotas /develop/* requerem develop_admin — verificado no composable useDevelopAdmin() de cada página
