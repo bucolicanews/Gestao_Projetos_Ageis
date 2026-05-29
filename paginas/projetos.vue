@@ -17,11 +17,10 @@
 
         <button
           class="botao-secundario text-sm"
-          :disabled="importando"
-          title="Importar projeto a partir de arquivo JSON"
-          @click="handleImportar"
+          title="Importar projeto a partir de arquivo JSON ou colar"
+          @click="mostrarImportar = true"
         >
-          {{ importando ? 'Importando...' : '↑ Importar JSON' }}
+          ↑ Importar JSON
         </button>
 
         <button class="botao-primario text-sm" @click="abrirModal">
@@ -139,6 +138,13 @@
     <!-- Modal prompt IA -->
     <ModalPromptIA v-if="mostrarPromptIA" @fechar="mostrarPromptIA = false" />
 
+    <!-- Modal importar projeto -->
+    <ModalImportarProjeto
+      v-if="mostrarImportar"
+      @fechar="mostrarImportar = false"
+      @importado="onImportado"
+    />
+
     <!-- Modal criar/editar projeto -->
     <ModalProjeto
       v-if="abrindo"
@@ -228,9 +234,8 @@ export default defineComponent({
 
   setup() {
     const { exportando, exportarProjeto } = useExportProjeto()
-    const { importando, importarProjeto, lerArquivoJson } = useImportProjeto()
     const permissoes = usePermissoesProjeto()
-    return { exportando, exportarProjeto, importando, importarProjeto, lerArquivoJson, permissoes }
+    return { exportando, exportarProjeto, permissoes }
   },
 
   data() {
@@ -240,6 +245,7 @@ export default defineComponent({
       projetoEditando: null as any,
       relatorio: null as RelatorioImportacao | null,
       mostrarPromptIA: false,
+      mostrarImportar: false,
       confirmandoExclusao: null as string | null,
       excluindo: false,
       filtroStatus: 'ativo' as string,
@@ -303,15 +309,10 @@ export default defineComponent({
       }
     },
 
-    async handleImportar() {
-      try {
-        const json = await this.lerArquivoJson()
-        const rel  = await this.importarProjeto(json)
-        this.relatorio = rel
-        if (!rel.erros.length) this.carregarProjetos()
-      } catch (err: any) {
-        // Usuário cancelou o file picker — ignorar silenciosamente
-      }
+    onImportado(relatorio: any) {
+      this.mostrarImportar = false
+      this.relatorio = relatorio
+      if (!relatorio.erros.length) this.carregarProjetos()
     },
 
     contarStatus(status: string): number {
