@@ -16,7 +16,7 @@
             <option value="ativo">Ativo</option>
             <option value="pausado">Pausado</option>
             <option value="concluido">Concluído</option>
-            <option value="cancelado">Cancelado</option>
+            <option value="arquivado">Arquivado</option>
           </select>
         </div>
 
