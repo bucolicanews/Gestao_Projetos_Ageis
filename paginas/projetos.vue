@@ -9,6 +9,14 @@
       <div class="flex gap-2">
         <button
           class="botao-secundario text-sm"
+          title="Como gerar projeto com IA"
+          @click="mostrarPromptIA = true"
+        >
+          🤖 Gerar com IA
+        </button>
+
+        <button
+          class="botao-secundario text-sm"
           :disabled="importando"
           title="Importar projeto a partir de arquivo JSON"
           @click="handleImportar"
@@ -80,6 +88,9 @@
         Nenhum projeto ainda.
       </div>
     </div>
+
+    <!-- Modal prompt IA -->
+    <ModalPromptIA v-if="mostrarPromptIA" @fechar="mostrarPromptIA = false" />
 
     <!-- Modal criar/editar projeto -->
     <ModalProjeto
@@ -180,6 +191,7 @@ export default defineComponent({
       abrindo: false,
       projetoEditando: null as any,
       relatorio: null as RelatorioImportacao | null,
+      mostrarPromptIA: false,
     }
   },
 
