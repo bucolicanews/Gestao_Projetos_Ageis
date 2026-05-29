@@ -1,9 +1,8 @@
+
 # Prompt — Gerar Projeto Completo para Importação
 
 Use este prompt em qualquer LLM (Claude, ChatGPT, Gemini) para gerar um projeto
 completo no formato JSON pronto para importar no sistema GESTAO_PROJTOS_VUE.
-
----
 
 ## Como usar
 
