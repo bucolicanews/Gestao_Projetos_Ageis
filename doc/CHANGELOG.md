@@ -2,6 +2,20 @@
 
 Histórico de alterações principais do sistema de gestão ágil.
 
+## [0.6.0] — Integração PagBank funcional + mock local (2026-05-28)
+
+### Corrigido
+- **`create-pagbank-payment`**: join `organizacoes→usuarios` via FK inexistente causava 400 silencioso — substituído por queries separadas
+- **`create-pagbank-payment`**: campo `email_contato` não existe em `organizacoes` — removido
+- **`create-pagbank-payment`**: `expiration_date` frágil (`.replace('.000Z','Z')`) — corrigido para `.split('.')[0] + 'Z'`
+- **`create-pagbank-payment`**: catch retornava `status: 400` — corrigido para `status: 200` com `{ success: false, error }` para mensagem chegar ao frontend
+- **Migration `0058_fix_max_usuarios.sql`**: coluna `max_usuarios` ausente em produção (migration 0040 pulada)
+
+### Adicionado
+- **Mock local automático** em `create-pagbank-payment`: detecta `127.0.0.1`/`localhost` e retorna QR Code fake sem chamar PagBank. Simular pagamento via SQL: `UPDATE pagbank_payments SET status = 'PAID' WHERE status = 'PENDING' ORDER BY criado_em DESC LIMIT 1`
+- **`doc/PAYMENT_INTEGRATION.md`**: reescrito para este projeto (corrigido: era cópia do Bingo Show com tabela `configuracoes` + `admin_id` errado)
+- **`doc/pagbank/homologacao_requests_responses.txt`**: request+response para homologação PagBank
+
 ## [0.4.0] — Dashboard por projeto + Indicadores de fluxo
 
 ### Adicionado

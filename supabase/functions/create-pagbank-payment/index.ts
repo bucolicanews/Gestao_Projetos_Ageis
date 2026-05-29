@@ -35,6 +35,35 @@ Deno.serve(async (req) => {
       throw new Error('Campos obrigatórios: org_id, amount, payment_method')
     }
 
+    // Mock local — bypassa PagBank em ambiente de desenvolvimento
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+    const isInternalUrl = supabaseUrl.includes('kong') || supabaseUrl.includes('127.0.0.1') || supabaseUrl.includes('localhost')
+    // notification_urls: usa env var override, ou SUPABASE_URL se for URL pública, ou omite se local
+    const webhookBase = Deno.env.get('PAGBANK_WEBHOOK_BASE_URL') || (!isInternalUrl ? supabaseUrl : null)
+    const notificationUrls: string[] = webhookBase ? [`${webhookBase}/functions/v1/pagbank-webhook`] : []
+    if (supabaseUrl.includes('127.0.0.1') || supabaseUrl.includes('localhost')) {
+      const mockOrderId = `MOCK_${Date.now()}`
+      await admin.from('pagbank_payments').insert({
+        org_id,
+        plano_id: plano_id || null,
+        pagbank_order_id: mockOrderId,
+        reference_id: `SUB_MOCK_${org_id.substring(0, 8)}_${Date.now()}`,
+        status: 'PENDING',
+        amount,
+        payment_method,
+        qr_code: 'https://placehold.co/300x300?text=PIX+MOCK+LOCAL',
+        qr_code_text: '00020126580014br.gov.bcb.pix0136MOCK-PIX-KEY-LOCAL-DEV5204000053039865802BR5925Gestao Agil Mock6009SAO PAULO62070503***6304ABCD',
+        checkout_link: payment_method === 'CREDIT_CARD' ? 'http://localhost:3000/mock-checkout' : null,
+      })
+      return new Response(JSON.stringify({
+        success: true,
+        qr_code: 'https://placehold.co/300x300?text=PIX+MOCK+LOCAL',
+        qr_code_text: '00020126580014br.gov.bcb.pix0136MOCK-PIX-KEY-LOCAL-DEV5204000053039865802BR5925Gestao Agil Mock6009SAO PAULO62070503***6304ABCD',
+        checkout_link: payment_method === 'CREDIT_CARD' ? 'http://localhost:3000/mock-checkout' : null,
+        order_id: mockOrderId,
+      }), { headers: { ...cabecalhosCors, 'Content-Type': 'application/json' } })
+    }
+
     // Busca configuração PagBank
     const { data: cfg, error: cfgErr } = await admin
       .from('configuracoes_pagamentos')
@@ -49,10 +78,17 @@ Deno.serve(async (req) => {
     // Busca dados da org
     const { data: org } = await admin
       .from('organizacoes')
-      .select('nome, email_contato, dono:usuarios!organizacoes_dono_usuarios_fkey(nome, email)')
+      .select('nome')
       .eq('id', org_id)
       .single()
     if (!org) throw new Error('Organização não encontrada')
+
+    // Busca nome e email do usuário autenticado
+    const { data: usuarioDB } = await admin
+      .from('usuarios')
+      .select('nome, email')
+      .eq('id', user.id)
+      .single()
 
     // Calcula valor final com taxa (se configurado)
     let valorFinal = amount
@@ -65,10 +101,9 @@ Deno.serve(async (req) => {
 
     const referenceId = `SUB_${org_id.substring(0, 8)}_${Date.now()}`
     const baseUrl = PAGBANK_URLS[cfg.pagbank_env as 'sandbox' | 'producao']
-    const webhookUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/pagbank-webhook`
 
-    const nomeCliente = (org.dono as any)?.nome || org.nome
-    const emailCliente = (org.dono as any)?.email || org.email_contato || 'contato@email.com'
+    const nomeCliente = usuarioDB?.nome || org.nome
+    const emailCliente = usuarioDB?.email || user.email || 'contato@email.com'
     const taxId = (metadata.cpf || '').replace(/\D/g, '') || '00000000000'
     const nomeFormatado = nomeCliente.includes(' ') ? nomeCliente : `${nomeCliente} Cliente`
 
@@ -77,13 +112,13 @@ Deno.serve(async (req) => {
 
     if (payment_method === 'pix') {
       endpoint = `${baseUrl}/orders`
-      const expiracao = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().replace('.000Z', 'Z')
+      const expiracao = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('.')[0] + 'Z'
       const payload = {
         reference_id: referenceId,
         customer: { name: nomeFormatado, email: emailCliente, tax_id: taxId },
         items: [{ name: 'Assinatura Gestão Ágil', quantity: 1, unit_amount: valorCentavos }],
         qr_codes: [{ amount: { value: valorCentavos }, expiration_date: expiracao }],
-        notification_urls: [webhookUrl],
+        ...(notificationUrls.length > 0 ? { notification_urls: notificationUrls } : {}),
       }
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -95,7 +130,7 @@ Deno.serve(async (req) => {
 
     } else {
       endpoint = `${baseUrl}/checkouts`
-      const expiracao = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().replace('.000Z', 'Z')
+      const expiracao = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('.')[0] + 'Z'
       const telNum = (metadata.telefone || '').replace(/\D/g, '')
       const phone = telNum.length >= 10
         ? [{ country: '55', area: telNum.substring(0, 2), number: telNum.substring(2), type: 'MOBILE' }]
@@ -105,7 +140,7 @@ Deno.serve(async (req) => {
         expiration_date: expiracao,
         customer: { name: nomeFormatado, email: emailCliente, tax_id: taxId, ...(phone ? { phones: phone } : {}) },
         items: [{ reference_id: `ITEM_${referenceId}`, name: 'Assinatura Gestão Ágil', quantity: 1, unit_amount: valorCentavos }],
-        notification_urls: [webhookUrl],
+        ...(notificationUrls.length > 0 ? { notification_urls: notificationUrls } : {}),
       }
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -145,8 +180,9 @@ Deno.serve(async (req) => {
     }), { headers: { ...cabecalhosCors, 'Content-Type': 'application/json' } })
 
   } catch (e: any) {
+    console.error('[create-pagbank-payment] Erro:', e.message)
     return new Response(JSON.stringify({ success: false, error: e.message }), {
-      status: 400,
+      status: 200,
       headers: { ...cabecalhosCors, 'Content-Type': 'application/json' },
     })
   }
