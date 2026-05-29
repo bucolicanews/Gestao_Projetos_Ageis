@@ -4,7 +4,7 @@
 Use este prompt em qualquer LLM (Claude, ChatGPT, Gemini) para gerar um projeto
 completo no formato JSON pronto para importar no sistema GESTAO_PROJTOS_VUE.
 
-## Como usar
+## Como_usar
 
 1. Copie o bloco **PROMPT** abaixo
 2. Substitua `[DESCREVA SEU PROJETO AQUI]` pela descrição do que você quer construir
