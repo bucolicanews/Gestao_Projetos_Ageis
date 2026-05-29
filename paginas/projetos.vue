@@ -62,6 +62,30 @@
             >
               ✏️
             </button>
+
+            <template v-if="permissoes.temPermissao(p.id, 'excluir_projeto')">
+              <button
+                v-if="confirmandoExclusao !== p.id"
+                class="text-xs text-slate-400 hover:text-red-500 p-1 rounded"
+                title="Excluir projeto"
+                @click.stop="confirmandoExclusao = p.id"
+              >
+                🗑️
+              </button>
+
+              <span v-else class="flex items-center gap-1 text-xs">
+                <span class="text-red-500 font-medium">Excluir?</span>
+                <button
+                  class="text-red-600 hover:text-red-800 font-bold px-1"
+                  :disabled="excluindo"
+                  @click.stop="confirmarExclusao(p.id)"
+                >Sim</button>
+                <button
+                  class="text-slate-400 hover:text-slate-600 px-1"
+                  @click.stop="confirmandoExclusao = null"
+                >Não</button>
+              </span>
+            </template>
           </div>
         </div>
 
@@ -182,7 +206,8 @@ export default defineComponent({
   setup() {
     const { exportando, exportarProjeto } = useExportProjeto()
     const { importando, importarProjeto, lerArquivoJson } = useImportProjeto()
-    return { exportando, exportarProjeto, importando, importarProjeto, lerArquivoJson }
+    const permissoes = usePermissoesProjeto()
+    return { exportando, exportarProjeto, importando, importarProjeto, lerArquivoJson, permissoes }
   },
 
   data() {
@@ -192,6 +217,8 @@ export default defineComponent({
       projetoEditando: null as any,
       relatorio: null as RelatorioImportacao | null,
       mostrarPromptIA: false,
+      confirmandoExclusao: null as string | null,
+      excluindo: false,
     }
   },
 
@@ -226,6 +253,18 @@ export default defineComponent({
 
     fecharRelatorio() {
       this.relatorio = null
+    },
+
+    async confirmarExclusao(id: string) {
+      this.excluindo = true
+      try {
+        await this.loja.excluir(id)
+        this.confirmandoExclusao = null
+      } catch (err: any) {
+        alert(`Erro ao excluir: ${err.message}`)
+      } finally {
+        this.excluindo = false
+      }
     },
 
     async handleImportar() {
