@@ -198,7 +198,7 @@ export default defineComponent({
       }
     }
 
-    return { copiado, textareaRef, exemplos, promptAtual, usarExemplo, copiarPrompt }
+    return { copiado, textareaRef, exemplos, promptAtual, descricaoCustom, usarExemplo, copiarPrompt }
   },
 })
 </script>
