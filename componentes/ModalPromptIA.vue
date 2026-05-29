@@ -27,9 +27,25 @@
           <p>5. Volte aqui e clique em <strong>↑ Importar JSON</strong></p>
         </div>
 
+        <!-- Descrição do projeto -->
+        <div>
+          <label class="text-sm font-semibold text-slate-700 block mb-1">
+            Descreva seu projeto:
+          </label>
+          <textarea
+            v-model="descricaoCustom"
+            rows="4"
+            placeholder="Ex: Sistema de e-commerce com catálogo de produtos, carrinho, checkout com PIX e cartão, painel admin para pedidos. Stack: Vue 3 + Node.js + PostgreSQL."
+            class="w-full text-sm border rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-primaria placeholder:text-slate-300"
+          />
+          <p class="text-xs text-slate-400 mt-1">
+            Sua descrição substitui automaticamente o campo no prompt abaixo.
+          </p>
+        </div>
+
         <!-- Exemplos de descrição -->
         <div>
-          <p class="text-sm font-semibold text-slate-700 mb-2">Exemplos de descrição para substituir no prompt:</p>
+          <p class="text-sm font-semibold text-slate-700 mb-2">Ou use um exemplo:</p>
           <div class="space-y-2">
             <div
               v-for="ex in exemplos"
@@ -41,7 +57,7 @@
               <p class="text-slate-500 mt-0.5 text-xs">{{ ex.descricao }}</p>
             </div>
           </div>
-          <p class="text-xs text-slate-400 mt-1">Clique em um exemplo para inserir no prompt</p>
+          <p class="text-xs text-slate-400 mt-1">Clique para usar como descrição</p>
         </div>
 
         <!-- Prompt -->
