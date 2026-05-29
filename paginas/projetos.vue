@@ -30,12 +30,35 @@
       </div>
     </div>
 
+    <!-- Abas de filtro por status -->
+    <div class="flex gap-1 border-b mb-5 overflow-x-auto">
+      <button
+        v-for="aba in abas"
+        :key="aba.valor"
+        class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors"
+        :class="filtroStatus === aba.valor
+          ? 'border-b-2 border-primaria text-primaria -mb-px'
+          : 'text-slate-500 hover:text-slate-700'"
+        @click="filtroStatus = aba.valor"
+      >
+        {{ aba.label }}
+        <span
+          class="text-xs px-1.5 py-0.5 rounded-full font-bold"
+          :class="filtroStatus === aba.valor
+            ? 'bg-primaria text-white'
+            : 'bg-slate-100 text-slate-500'"
+        >
+          {{ contarStatus(aba.valor) }}
+        </span>
+      </button>
+    </div>
+
     <div v-if="loja.carregando">
       Carregando...
     </div>
 
     <div v-else class="grid gap-4 md:grid-cols-3">
-      <div v-for="p in loja.projetos" :key="p.id" class="cartao hover:shadow-md transition">
+      <div v-for="p in projetosFiltrados" :key="p.id" class="cartao hover:shadow-md transition">
         <div class="flex justify-between items-start">
           <NuxtLink :to="linkProjeto(p.id)" class="font-semibold text-lg hover:text-primaria">
             {{ p.nome }}
@@ -108,8 +131,8 @@
         </div>
       </div>
 
-      <div v-if="!loja.projetos.length" class="text-slate-500">
-        Nenhum projeto ainda.
+      <div v-if="!projetosFiltrados.length" class="text-slate-500 col-span-3">
+        Nenhum projeto {{ labelStatus(filtroStatus) }} ainda.
       </div>
     </div>
 
@@ -219,7 +242,20 @@ export default defineComponent({
       mostrarPromptIA: false,
       confirmandoExclusao: null as string | null,
       excluindo: false,
+      filtroStatus: 'ativo' as string,
+      abas: [
+        { valor: 'ativo',    label: 'Ativos'     },
+        { valor: 'pausado',  label: 'Pausados'   },
+        { valor: 'concluido',label: 'Concluídos' },
+        { valor: 'arquivado',label: 'Arquivados' },
+      ],
     }
+  },
+
+  computed: {
+    projetosFiltrados(): any[] {
+      return this.loja.projetos.filter((p: any) => p.status === this.filtroStatus)
+    },
   },
 
   mounted() {
@@ -276,6 +312,14 @@ export default defineComponent({
       } catch (err: any) {
         // Usuário cancelou o file picker — ignorar silenciosamente
       }
+    },
+
+    contarStatus(status: string): number {
+      return this.loja.projetos.filter((p: any) => p.status === status).length
+    },
+
+    labelStatus(status: string): string {
+      return this.abas.find(a => a.valor === status)?.label.toLowerCase() ?? status
     },
 
     linkProjeto(id: string) { return `/dashboardProjeto?id=${id}` },
