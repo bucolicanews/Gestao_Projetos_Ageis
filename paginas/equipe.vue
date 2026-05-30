@@ -1,17 +1,17 @@
 <template>
   <div>
     <!-- Header -->
-    <div class="flex justify-between items-center mb-6 flex-wrap gap-3">
-      <div>
+    <div class="mb-6">
+      <div class="flex items-center justify-between gap-3">
         <h1 class="text-3xl font-bold">👥 Equipe</h1>
-        <p class="text-sm text-slate-500 mt-1">{{ usuarios.length }} usuário{{ usuarios.length !== 1 ? 's' : '' }} cadastrado{{ usuarios.length !== 1 ? 's' : '' }}</p>
+        <button v-if="projetoId && temPermissao('convidar_usuario')" class="botao-secundario text-sm" @click="abrirConvite">✉ Convidar</button>
       </div>
-      <div class="flex items-center gap-3">
-        <select v-model="projetoId" class="px-3 py-2 border rounded-lg text-sm">
+      <p class="text-sm text-slate-500 mt-1">{{ usuarios.length }} usuário{{ usuarios.length !== 1 ? 's' : '' }} cadastrado{{ usuarios.length !== 1 ? 's' : '' }}</p>
+      <div class="mt-3">
+        <select v-model="projetoId" class="px-3 py-2 border rounded-lg text-sm mx-2 max-w-full">
           <option value="">Todos os projetos</option>
           <option v-for="p in loja.projetos" :key="p.id" :value="p.id">{{ p.nome }}</option>
         </select>
-        <button v-if="projetoId && temPermissao('convidar_usuario')" class="botao-secundario text-sm" @click="abrirConvite">✉ Convidar</button>
       </div>
     </div>
 
@@ -27,7 +27,7 @@
         :key="u.id"
         class="cartao"
       >
-        <div class="flex items-center gap-4">
+        <div class="flex flex-wrap items-center gap-4">
           <!-- Avatar -->
           <div class="shrink-0">
             <img v-if="u.avatar_url" :src="u.avatar_url" class="w-12 h-12 rounded-full object-cover" />
@@ -48,6 +48,9 @@
             <div class="text-xs text-slate-500 truncate">{{ u.email }}</div>
           </div>
 
+          <!-- Papel + Ações: linha própria no mobile -->
+          <div class="flex items-center justify-between w-full sm:w-auto sm:gap-2">
+
           <!-- Papel no projeto selecionado -->
           <template v-if="projetoId">
             <span
@@ -60,6 +63,7 @@
               fora do projeto
             </span>
           </template>
+          <span v-else class="flex-1" />
 
           <!-- Ações -->
           <div class="flex items-center gap-1 shrink-0">
@@ -109,6 +113,7 @@
             >
               🗑
             </button>
+          </div>
           </div>
         </div>
 

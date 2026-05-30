@@ -17,6 +17,32 @@ Designmare System para GESTAO DE PROJETOS, focada em produtos de alta qualidade 
 2. Import `index.css` in your entry file.
 3. Use semantic tokens: `bg-background`, `text-foreground`, `bg-primary`, `shadow-glow`, etc.
 
+## Padrões de Componentes
+
+### Select de Projeto (padrão obrigatório em todas as páginas)
+
+Toda página que exibe um seletor de projetos deve seguir este padrão:
+
+```vue
+<select v-model="projetoId" class="px-3 py-2 border rounded-lg text-sm">
+  <option value="">Selecione um projeto...</option>
+  <option v-for="p in lojaProjetos.projetos" :key="p.id" :value="p.id">
+    {{ p.nome }}
+  </option>
+</select>
+```
+
+**Regras:**
+- `px-3 py-2` — padding padrão
+- `border rounded-lg` — borda com cantos arredondados
+- `text-sm` — tamanho de fonte padrão
+- Nome completo exibido — sem truncação manual
+- Sem width fixo — adapta ao container pai
+
+**Páginas que usam este padrão:** `index.vue`, `backlog.vue`, `kanban.vue`, `sprints.vue`, `equipe.vue`
+
+---
+
 ## Color Palette
 
 - **background**: `hsl(0 0% 100%)`

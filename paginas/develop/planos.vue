@@ -7,12 +7,12 @@
 
     <template v-else-if="isDevelopAdmin">
       <!-- Header -->
-      <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
-        <div>
+      <div class="mb-6">
+        <div class="flex items-center justify-between gap-3">
           <h1 class="text-2xl font-bold">📦 Planos</h1>
-          <p class="text-sm text-slate-500 mt-0.5">Gerencie os planos disponíveis para organizações</p>
+          <button class="botao-primario" @click="abrirNovo">+ Novo plano</button>
         </div>
-        <button class="botao-primario" @click="abrirNovo">+ Novo plano</button>
+        <p class="text-sm text-slate-500 mt-0.5">Gerencie os planos disponíveis para organizações</p>
       </div>
 
       <!-- Carregando -->

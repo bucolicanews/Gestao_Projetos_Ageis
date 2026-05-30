@@ -1,20 +1,18 @@
 <template>
   <div>
-    <div class="flex justify-between items-center mb-6 flex-wrap gap-3">
-      <h1 class="text-3xl font-bold">🔄 Sprints</h1>
-
-      <div class="flex gap-3 items-center">
-        <select v-model="projetoId" class="px-3 py-2 border rounded-lg">
-          <option value="">Selecione um projeto...</option>
-          <option v-for="p in lojaProjetos.projetos" :key="p.id" :value="p.id">
-            {{ p.nome }}
-          </option>
-        </select>
-
+    <div class="flex flex-col gap-3 mb-6">
+      <div class="flex items-center justify-between gap-3">
+        <h1 class="text-3xl font-bold">🔄 Sprints</h1>
         <button v-if="projetoId" class="botao-primario" @click="abrirModalNovaSprint">
           + Nova sprint
         </button>
       </div>
+      <select v-model="projetoId" class="px-3 py-2 border rounded-lg text-sm mx-2 max-w-full">
+        <option value="">Selecione um projeto...</option>
+        <option v-for="p in lojaProjetos.projetos" :key="p.id" :value="p.id">
+          {{ p.nome }}
+        </option>
+      </select>
     </div>
 
     <div v-if="!projetoId" class="text-slate-500">Escolha um projeto.</div>

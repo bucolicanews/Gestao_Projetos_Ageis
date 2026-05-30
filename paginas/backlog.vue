@@ -1,13 +1,20 @@
 <template>
   <div>
     <!-- Cabeçalho -->
-    <div class="flex justify-between items-center mb-6 flex-wrap gap-3">
-      <div>
+    <div class="mb-6">
+      <div class="flex items-center justify-between gap-3">
         <h1 class="text-3xl font-bold">📋 Backlog</h1>
-        <p class="text-sm text-slate-500 mt-1">Tarefas sem sprint atribuída</p>
+        <button
+          v-if="projetoId"
+          class="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          @click="abrirNova"
+        >
+          + Nova tarefa
+        </button>
       </div>
+      <p class="text-sm text-slate-500 mt-1">Tarefas sem sprint atribuída</p>
 
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 mt-3">
         <select v-model="projetoId" class="px-3 py-2 border rounded-lg text-sm">
           <option value="">Selecione um projeto...</option>
           <option v-for="p in lojaProjetos.projetos" :key="p.id" :value="p.id">
@@ -33,17 +40,18 @@
 
     <div v-else class="space-y-4">
       <!-- Barra de ações -->
+      <div class="w-[95%] mx-auto">
       <div class="flex flex-wrap items-center gap-3">
         <!-- Busca -->
         <input
           v-model="busca"
           type="text"
           placeholder="🔍 Buscar..."
-          class="px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:border-indigo-400 w-48"
+          class="px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:border-indigo-400 w-full sm:w-48 mx-2 sm:mx-0"
         />
 
         <!-- Filtro prioridade -->
-        <select v-model="filtroPrioridade" class="px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:border-indigo-400">
+        <select v-model="filtroPrioridade" class="px-3 py-2 border rounded-lg text-sm">
           <option value="">Todas as prioridades</option>
           <option value="urgente">🔴 Urgente</option>
           <option value="alta">🟠 Alta</option>
@@ -52,7 +60,7 @@
         </select>
 
         <!-- Filtro sprint -->
-        <select v-model="filtroSprint" class="px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:border-indigo-400">
+        <select v-model="filtroSprint" class="px-3 py-2 border rounded-lg text-sm max-w-full sm:max-w-[220px]">
           <option value="">Todas as tarefas</option>
           <option value="sem_sprint">Apenas backlog</option>
           <option v-for="s in sprints" :key="s.id" :value="s.id">🔄 {{ s.nome }}</option>
@@ -63,34 +71,35 @@
           <span v-if="selecionadas.length"> · {{ selecionadas.length }} selecionada{{ selecionadas.length !== 1 ? 's' : '' }}</span>
         </span>
 
-        <!-- Mover selecionadas para sprint -->
-        <div v-if="selecionadas.length" class="flex items-center gap-2 ml-auto">
-          <select v-model="sprintDestino" class="px-3 py-1.5 text-sm border border-indigo-300 rounded-lg focus:outline-none focus:border-indigo-500 bg-indigo-50">
+        <!-- Ações em massa -->
+        <div v-if="selecionadas.length" class="w-full flex flex-col gap-2 mt-1">
+          <select v-model="sprintDestino" class="px-3 py-2 border rounded-lg text-sm mx-2">
             <option value="">Mover para sprint...</option>
             <option v-for="s in sprints" :key="s.id" :value="s.id">
               {{ s.nome }}
             </option>
           </select>
-          <button
-            :disabled="!sprintDestino"
-            class="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed"
-            @click="moverSelecionadas"
-          >
-            Mover ({{ selecionadas.length }})
-          </button>
-          <button class="text-xs text-slate-400 hover:text-slate-600" @click="selecionadas = []">
-            Cancelar
-          </button>
+          <div class="flex items-center gap-2 mx-2">
+            <button
+              :disabled="!sprintDestino"
+              class="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              @click="moverSelecionadas"
+            >
+              Mover ({{ selecionadas.length }})
+            </button>
+            <button
+              class="px-3 py-1.5 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600"
+              @click="excluirSelecionadas"
+            >
+              🗑️ Excluir ({{ selecionadas.length }})
+            </button>
+            <button class="text-xs text-slate-400 hover:text-slate-600 ml-auto" @click="selecionadas = []">
+              Cancelar
+            </button>
+          </div>
         </div>
 
-        <!-- Nova tarefa -->
-        <button
-          v-else
-          class="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 ml-auto"
-          @click="abrirNova"
-        >
-          + Nova tarefa
-        </button>
+      </div>
       </div>
 
       <!-- Tabela de tarefas -->
@@ -133,7 +142,6 @@
             >
               <td class="px-4 py-3">
                 <input
-                  v-if="!t.sprint"
                   type="checkbox"
                   :checked="selecionadas.includes(t.id)"
                   class="rounded"
@@ -196,6 +204,20 @@
                   >
                     ← Backlog
                   </button>
+                  <button
+                    class="text-xs text-slate-400 hover:text-primaria px-2 py-1 rounded hover:bg-slate-50"
+                    title="Editar tarefa"
+                    @click="abrirEdicao(t)"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    class="text-xs text-slate-400 hover:text-red-500 px-2 py-1 rounded hover:bg-red-50"
+                    title="Excluir tarefa"
+                    @click="excluirUma(t)"
+                  >
+                    🗑️
+                  </button>
                 </div>
               </td>
             </tr>
@@ -212,13 +234,14 @@
       </div>
     </div>
 
-    <!-- Modal criar nova tarefa -->
+    <!-- Modal criar / editar tarefa -->
     <ModalTarefa
       :exibir="exibirModal"
-      :tarefa="{ projeto_id: projetoId, coluna: 'backlog', prioridade: 'media' }"
+      :tarefa="tarefaParaEditar ?? { projeto_id: projetoId, coluna: 'backlog', prioridade: 'media' }"
       :membros="membrosDoProj"
-      @fechar="exibirModal = false"
+      @fechar="fecharModal"
       @salvo="aoSalvarTarefa"
+      @deletado="aoExcluirTarefa"
     />
 
     <!-- Modal mover tarefa única para sprint -->
@@ -267,6 +290,7 @@ const sprintDestino = ref('')
 const exibirModal = ref(false)
 const membrosDoProj = ref<any[]>([])
 const tarefaParaMover = ref<any>(null)
+const tarefaParaEditar = ref<any>(null)
 const sprintUnica = ref('')
 
 const tarefasFiltradas = computed(() => {
@@ -280,8 +304,7 @@ const tarefasFiltradas = computed(() => {
   })
 })
 
-// Only tasks without sprint can be bulk-selected
-const selecionaveis = computed(() => tarefasFiltradas.value.filter(t => !t.sprint))
+const selecionaveis = computed(() => tarefasFiltradas.value)
 
 const todasSelecionadas = computed(() =>
   selecionaveis.value.length > 0 && selecionaveis.value.every(t => selecionadas.value.includes(t.id))
@@ -339,12 +362,47 @@ async function abrirNova() {
   if (!membrosDoProj.value.length && projetoId.value) {
     membrosDoProj.value = await servicoEquipe().listarMembrosPorID(projetoId.value).catch(() => [])
   }
+  tarefaParaEditar.value = null
   exibirModal.value = true
 }
 
-function aoSalvarTarefa(nova: any) {
-  if (nova?.id) lista.value.unshift({ ...nova, sprint: null })
+async function abrirEdicao(t: any) {
+  if (!membrosDoProj.value.length && projetoId.value) {
+    membrosDoProj.value = await servicoEquipe().listarMembrosPorID(projetoId.value).catch(() => [])
+  }
+  tarefaParaEditar.value = t
+  exibirModal.value = true
+}
+
+function fecharModal() {
   exibirModal.value = false
+  tarefaParaEditar.value = null
+}
+
+function aoSalvarTarefa(salva: any) {
+  if (!salva?.id) return
+  const idx = lista.value.findIndex(t => t.id === salva.id)
+  if (idx >= 0) lista.value[idx] = { ...lista.value[idx], ...salva }
+  else lista.value.unshift({ ...salva, sprint: salva.sprint ?? null })
+  fecharModal()
+}
+
+function aoExcluirTarefa(id: string) {
+  lista.value = lista.value.filter(t => t.id !== id)
+  selecionadas.value = selecionadas.value.filter(s => s !== id)
+}
+
+async function excluirUma(t: any) {
+  if (!confirm(`Excluir "${t.titulo}"?`)) return
+  await servicoTarefas().excluirTarefa(t.id)
+  aoExcluirTarefa(t.id)
+}
+
+async function excluirSelecionadas() {
+  if (!confirm(`Excluir ${selecionadas.value.length} tarefa(s) permanentemente?`)) return
+  await Promise.all(selecionadas.value.map(id => servicoTarefas().excluirTarefa(id)))
+  selecionadas.value.forEach(id => aoExcluirTarefa(id))
+  selecionadas.value = []
 }
 
 async function moverSelecionadas() {

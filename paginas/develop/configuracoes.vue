@@ -5,14 +5,14 @@
     </div>
 
     <template v-else-if="isDevelopAdmin">
-      <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
-        <div>
+      <div class="mb-6">
+        <div class="flex items-center justify-between gap-3">
           <h1 class="text-2xl font-bold">🔧 Configurações</h1>
-          <p class="text-sm text-slate-500 mt-0.5">Webhook n8n e regras de notificação</p>
+          <button class="botao-primario" :disabled="cfg.salvando.value" @click="salvar">
+            {{ cfg.salvando.value ? 'Salvando...' : '💾 Salvar' }}
+          </button>
         </div>
-        <button class="botao-primario" :disabled="cfg.salvando.value" @click="salvar">
-          {{ cfg.salvando.value ? 'Salvando...' : '💾 Salvar' }}
-        </button>
+        <p class="text-sm text-slate-500 mt-0.5">Webhook n8n e regras de notificação</p>
       </div>
 
       <div v-if="cfg.carregando.value" class="text-slate-400 text-sm py-8 text-center">Carregando...</div>

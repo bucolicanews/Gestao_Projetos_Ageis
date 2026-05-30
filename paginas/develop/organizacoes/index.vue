@@ -50,12 +50,12 @@
         <table class="w-full text-sm">
           <thead>
             <tr class="bg-slate-50 border-b border-slate-100">
-              <th class="text-left px-4 py-3 font-semibold text-slate-600">Organização</th>
-              <th class="text-left px-4 py-3 font-semibold text-slate-600 hidden md:table-cell">Plano</th>
-              <th class="text-left px-4 py-3 font-semibold text-slate-600">Status</th>
-              <th class="text-left px-4 py-3 font-semibold text-slate-600 hidden lg:table-cell">Vencimento</th>
-              <th class="text-left px-4 py-3 font-semibold text-slate-600 hidden lg:table-cell">Telefone</th>
-              <th class="text-right px-4 py-3 font-semibold text-slate-600">Ações</th>
+              <th class="text-left px-2 sm:px-4 py-3 font-semibold text-slate-600 max-w-[140px]">Organização</th>
+              <th class="text-left px-2 sm:px-4 py-3 font-semibold text-slate-600 hidden md:table-cell">Plano</th>
+              <th class="text-left px-2 sm:px-4 py-3 font-semibold text-slate-600">Status</th>
+              <th class="text-left px-2 sm:px-4 py-3 font-semibold text-slate-600 hidden lg:table-cell">Vencimento</th>
+              <th class="text-left px-2 sm:px-4 py-3 font-semibold text-slate-600 hidden lg:table-cell">Telefone</th>
+              <th class="text-right px-2 sm:px-4 py-3 font-semibold text-slate-600 w-px whitespace-nowrap">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -64,11 +64,11 @@
               :key="org.id"
               class="border-b border-slate-50 hover:bg-slate-50 transition"
             >
-              <td class="px-4 py-3">
-                <NuxtLink :to="`/develop/organizacoes/${org.id}`" class="font-medium hover:text-primaria">
+              <td class="px-2 sm:px-4 py-3 max-w-[140px]">
+                <NuxtLink :to="`/develop/organizacoes/${org.id}`" class="font-medium hover:text-primaria block truncate">
                   {{ org.nome }}
                 </NuxtLink>
-                <p class="text-xs text-slate-400">{{ org.dono?.email }}</p>
+                <p class="text-xs text-slate-400 truncate">{{ org.dono?.email }}</p>
               </td>
               <td class="px-4 py-3 hidden md:table-cell">
                 <span v-if="org.planos" class="text-slate-700">{{ org.planos.titulo }}</span>

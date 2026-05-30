@@ -58,12 +58,12 @@
 
     <div v-else class="grid gap-4 md:grid-cols-3">
       <div v-for="p in projetosFiltrados" :key="p.id" class="cartao hover:shadow-md transition">
-        <div class="flex justify-between items-start">
-          <NuxtLink :to="linkProjeto(p.id)" class="font-semibold text-lg hover:text-primaria">
+        <div class="flex justify-between items-start gap-2">
+          <NuxtLink :to="linkProjeto(p.id)" class="font-semibold text-lg hover:text-primaria min-w-0 flex-1 line-clamp-2">
             {{ p.nome }}
           </NuxtLink>
 
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 shrink-0">
             <span class="text-xs px-2 py-1 rounded bg-slate-100">
               {{ p.status }}
             </span>

@@ -175,7 +175,7 @@
       </aside>
 
       <!-- Main -->
-      <main class="flex-1 p-3 md:p-6 overflow-y-auto min-w-0">
+      <main class="flex-1 p-3 md:p-6 overflow-y-auto overflow-x-hidden min-w-0 max-w-full break-words">
         <slot />
       </main>
     </div>

@@ -64,7 +64,7 @@
           <div class="text-2xl font-bold text-indigo-600">{{ totais.sprints_ativas }}</div>
           <div class="text-xs text-slate-500 mt-1">Sprints ativas</div>
         </div>
-        <div class="cartao text-center">
+        <div class="cartao text-center col-span-2 sm:col-span-1">
           <div class="text-2xl font-bold" :class="totais.atrasadas > 0 ? 'text-perigo' : 'text-sucesso'">
             {{ totais.atrasadas }}
           </div>
@@ -91,7 +91,7 @@
         </div>
       </div>
 
-      <div class="grid md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         <!-- Coluna esquerda: Sprints ativas + Tarefas por coluna -->
         <div class="space-y-4">
@@ -149,7 +149,7 @@
 
             <div class="space-y-2">
               <div v-for="(qtd, col) in tarefasPorColunaFiltradas" :key="col" class="flex items-center gap-3">
-                <div class="w-24 text-xs text-slate-500 text-right">{{ formatarColuna(col) }}</div>
+                <div class="w-16 sm:w-24 text-xs text-slate-500 text-right shrink-0">{{ formatarColuna(col) }}</div>
                 <div class="flex-1 bg-slate-100 rounded-full h-5 relative overflow-hidden">
                   <div
                     class="h-5 rounded-full transition-all flex items-center"

@@ -24,7 +24,7 @@
           </span>
         </div>
 
-        <select v-model="projetoId" class="px-3 py-2 border rounded-lg w-[90%] truncate">
+        <select v-model="projetoId" class="px-3 py-2 border rounded-lg text-sm">
           <option value="">Selecione um projeto...</option>
           <option v-for="p in lojaProjetos.projetos" :key="p.id" :value="p.id">
             {{ p.nome }}
