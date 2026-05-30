@@ -24,7 +24,7 @@
           </span>
         </div>
 
-        <select v-model="projetoId" class="px-3 py-2 border rounded-lg">
+        <select v-model="projetoId" class="px-3 py-2 border rounded-lg w-[90%] truncate">
           <option value="">Selecione um projeto...</option>
           <option v-for="p in lojaProjetos.projetos" :key="p.id" :value="p.id">
             {{ p.nome }}
@@ -37,7 +37,40 @@
       Escolha um projeto para visualizar o quadro.
     </div>
 
-    <div v-else class="flex gap-4 overflow-x-auto pb-4">
+    <!-- Tab bar — só mobile -->
+    <div v-if="projetoId" class="flex gap-2 overflow-x-auto pb-2 md:hidden">
+      <button
+        v-for="col in COLUNAS"
+        :key="col.id"
+        class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors"
+        :class="colunaSelecionada === col.id
+          ? 'bg-primaria text-white'
+          : 'bg-slate-100 text-slate-600'"
+        @click="colunaSelecionada = col.id"
+      >
+        {{ col.titulo }}
+        <span class="ml-1 text-xs opacity-70">({{ loja.porColuna(col.id).length }})</span>
+      </button>
+    </div>
+
+    <!-- Mobile: 1 coluna por vez -->
+    <div v-if="projetoId" class="md:hidden">
+      <ColunaKanban
+        v-for="col in COLUNAS"
+        v-show="colunaSelecionada === col.id"
+        :key="col.id"
+        :titulo="col.titulo"
+        :coluna="col.id"
+        :tarefas="loja.porColuna(col.id)"
+        :pode-criar="podeCriarTarefas"
+        @mover="aoMover"
+        @nova="criarNovaTarefa($event, col.id)"
+        @clicar-tarefa="abrirModal"
+      />
+    </div>
+
+    <!-- Desktop: flex scroll original -->
+    <div v-if="projetoId" class="hidden md:flex gap-4 overflow-x-auto pb-4">
       <ColunaKanban
         v-for="col in COLUNAS"
         :key="col.id"
@@ -78,6 +111,7 @@ export default defineComponent({
       lojaProjetos: useLojaProjetos(),
       user: useSupabaseUser(),
       projetoId: String(route.query.projeto ?? ''),
+      colunaSelecionada: 'backlog' as string,
       presentes: [] as any[],
       membros: [] as any[],
       tarefaSelecionada: null as any,
