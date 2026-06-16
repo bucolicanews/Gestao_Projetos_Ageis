@@ -4,6 +4,65 @@ Plataforma SaaS de gestão de projetos com Kanban, Sprints, Backlog e guia de Gi
 
 ---
 
+## Instalação rápida
+
+### 1. Instalar dependências do sistema
+
+**Docker**
+- Windows/Mac: [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/)
+- Linux: `curl -fsSL https://get.docker.com | sh`
+
+**Git**
+- Windows: [git-scm.com/download/win](https://git-scm.com/download/win)
+- Mac: `brew install git`
+- Linux: `sudo apt install git`
+
+**Node.js 20+**
+- [nodejs.org/en/download](https://nodejs.org/en/download)
+- Verificar: `node -v && npm -v`
+
+**Supabase CLI**
+```bash
+npm install -g supabase
+```
+
+**Nuxt / NestJS** — instalados via `npm install` ao clonar o projeto.
+
+---
+
+### 2. Clonar e instalar
+
+```bash
+git clone <url-do-repositorio>
+cd GESTAO_PROJTOS_VUE
+npm install
+```
+
+### 3. Configurar variáveis de ambiente
+
+```bash
+cp env.dev .env
+```
+
+Edite `.env`:
+```env
+SUPABASE_URL=http://127.0.0.1:54321
+SUPABASE_ANON_KEY=<anon key exibida pelo supabase start>
+SUPABASE_SERVICE_ROLE_KEY=<service_role key exibida pelo supabase start>
+```
+
+### 4. Subir banco e rodar
+
+```bash
+npm run dev-s
+# Equivale a: supabase stop && supabase start && nuxt dev
+# App disponível em http://localhost:3000
+```
+
+> Na primeira execução o Supabase exibe as chaves no terminal — copie para o `.env` e reinicie com `npm run dev-s`.
+
+---
+
 ## Stack tecnológica
 
 | Camada | Tecnologia |
