@@ -2,6 +2,7 @@
   "name": "gestao-projetos-ageis",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -20,10 +21,10 @@
     "s:login": "supabase login",
     "s:lista": "supabase projects list",
     "s:projeto": "supabase link --project-ref",
-    "s:logout": "supabase logout",
-    "s:reset": "supabase db reset"
+    "s:logout": "supabase logout"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@nuxtjs/supabase": "^1.4.0",
     "@nuxtjs/tailwindcss": "^6.12.0",
     "@pinia/nuxt": "^0.5.1",
