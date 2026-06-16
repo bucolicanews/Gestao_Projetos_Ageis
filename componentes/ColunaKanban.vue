@@ -1,15 +1,15 @@
 <template>
   <div class="cartao bg-slate-50 min-h-[400px] flex flex-col w-full min-w-[260px] flex-shrink-0 md:min-w-0 md:flex-1">
-    <div class="flex justify-between items-center mb-3">
-      <h3 class="font-semibold">
-        {{ titulo }}
+    <div class="flex justify-between items-start mb-3">
+      <div>
+        <h3 class="font-semibold">
+          {{ titulo }}
+          <span class="text-slate-400 text-sm">({{ tarefas.length }})</span>
+        </h3>
+        <p v-if="etapa" class="text-[10px] text-slate-400 mt-0.5">{{ etapa }}</p>
+      </div>
 
-        <span class="text-slate-400 text-sm">
-          ({{ tarefas.length }})
-        </span>
-      </h3>
-
-      <button v-if="podeCriar" class="text-xs text-primaria" @click="abrirFormulario">
+      <button v-if="podeCriar" class="text-xs text-primaria mt-0.5" @click="abrirFormulario">
         + adicionar
       </button>
     </div>
@@ -50,7 +50,8 @@ export default defineComponent({
     titulo: { type: String, required: true },
     coluna: { type: String, required: true },
     tarefas: { type: Array, required: true },
-    podeCriar: { type: Boolean, default: false }
+    podeCriar: { type: Boolean, default: false },
+    etapa: { type: String, default: '' }
   },
 
   emits: ['mover', 'nova', 'clicar-tarefa'],

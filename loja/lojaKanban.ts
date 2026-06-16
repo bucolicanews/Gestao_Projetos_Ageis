@@ -1,11 +1,13 @@
 import { defineStore } from 'pinia'
 
 export const COLUNAS = [
-  { id: 'backlog', titulo: 'Backlog' },
-  { id: 'a_fazer', titulo: 'A Fazer' },
-  { id: 'em_progresso', titulo: 'Em Progresso' },
-  { id: 'em_revisao', titulo: 'Em Revisão' },
-  { id: 'concluido', titulo: 'Concluído' }
+  { id: 'backlog',      titulo: 'Backlog',            etapa: 'Refinamento e priorização' },
+  { id: 'a_fazer',      titulo: 'Pronto para Dev',    etapa: 'Crie a branch e prepare o ambiente' },
+  { id: 'em_progresso', titulo: 'Em Desenvolvimento', etapa: 'Commits frequentes na branch' },
+  { id: 'em_revisao',   titulo: 'Code Review',         etapa: 'PR aberto → aguardando revisão' },
+  { id: 'ci_testes',    titulo: 'CI / Testes',         etapa: 'Pipeline: lint → build → testes' },
+  { id: 'homologacao',  titulo: 'Homologação',         etapa: 'Validação em staging com PO' },
+  { id: 'concluido',    titulo: 'Concluído ✅',         etapa: 'Merge em develop realizado' },
 ]
 
 export const useLojaKanban = defineStore('kanban', {

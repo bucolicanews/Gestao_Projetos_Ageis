@@ -65,9 +65,11 @@
               <label class="label-campo">Coluna Kanban</label>
               <select v-model="form.coluna" class="campo">
                 <option value="backlog">Backlog</option>
-                <option value="a_fazer">A Fazer</option>
-                <option value="em_progresso">Em Progresso</option>
-                <option value="em_revisao">Em Revisão</option>
+                <option value="a_fazer">Pronto para Dev</option>
+                <option value="em_progresso">Em Desenvolvimento</option>
+                <option value="em_revisao">Code Review</option>
+                <option value="ci_testes">CI / Testes</option>
+                <option value="homologacao">Homologação</option>
                 <option value="concluido">Concluído</option>
               </select>
             </div>
@@ -452,8 +454,13 @@ async function excluir() {
 
 function rotuloColunaHistorico(col: string) {
   const mapa: Record<string, string> = {
-    backlog: 'Backlog', a_fazer: 'A Fazer',
-    em_progresso: 'Em Progresso', em_revisao: 'Em Revisão', concluido: 'Concluído',
+    backlog:      'Backlog',
+    a_fazer:      'Pronto para Dev',
+    em_progresso: 'Em Desenvolvimento',
+    em_revisao:   'Code Review',
+    ci_testes:    'CI / Testes',
+    homologacao:  'Homologação',
+    concluido:    'Concluído',
   }
   return mapa[col] ?? col
 }
