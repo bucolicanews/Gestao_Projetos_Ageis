@@ -237,6 +237,9 @@
           v-else-if="abaAtiva === 'git'"
           :tipo="form.tipo_tarefa"
           :titulo="form.titulo"
+          :descricao="form.descricao"
+          :criterio-aceite="form.criterio_aceite"
+          :pontos="form.pontos"
         />
 
         <!-- ═══ ABA: HISTÓRICO ═══ -->

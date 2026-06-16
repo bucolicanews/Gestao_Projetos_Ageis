@@ -82,6 +82,17 @@
         </div>
       </div>
 
+      <!-- PR Template -->
+      <div class="border-t pt-5">
+        <GuiaPR
+          :titulo="titulo"
+          :descricao="descricao"
+          :criterio_aceite="criterioAceite"
+          :tipo="tipo"
+          :pontos="pontos"
+        />
+      </div>
+
       <!-- Regras -->
       <div class="border-l-4 border-amber-400 bg-amber-50 px-4 py-3 rounded-r-lg space-y-0.5">
         <p class="text-xs font-bold text-amber-800">⚠️ Regras de ouro</p>
@@ -100,6 +111,9 @@ import { computed, ref } from 'vue'
 const props = defineProps<{
   tipo: string
   titulo: string
+  descricao?: string
+  criterioAceite?: string
+  pontos?: number | null
 }>()
 
 const COMMIT_REF = [
