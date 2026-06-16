@@ -230,6 +230,13 @@
           </div>
         </div>
 
+        <!-- ═══ ABA: GIT ═══ -->
+        <GuiaGit
+          v-else-if="abaAtiva === 'git'"
+          :tipo="form.tipo_tarefa"
+          :titulo="form.titulo"
+        />
+
         <!-- ═══ ABA: HISTÓRICO ═══ -->
         <div v-else-if="abaAtiva === 'historico'" class="p-6 space-y-4">
           <div v-if="carregandoHistorico" class="text-center py-10 text-slate-400 text-sm">
@@ -307,6 +314,7 @@ const TIPOS = [
 const ABAS = [
   { id: 'detalhe',    label: 'Detalhes' },
   { id: 'estimativa', label: 'Estimativa' },
+  { id: 'git',        label: '🌿 Git' },
   { id: 'historico',  label: 'Histórico' },
 ]
 
