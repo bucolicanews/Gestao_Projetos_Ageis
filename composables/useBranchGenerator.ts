@@ -49,5 +49,37 @@ export function useBranchGenerator() {
     return `git push origin ${branch}`
   }
 
-  return { gerarBranch, gerarCommit, gerarComandos, gerarPush }
+  function gerarSequenciaCommits(tipo: string, titulo: string): string[] {
+    const base = slug(titulo).replace(/-/g, ' ')
+    const sequencias: Record<string, string[]> = {
+      feature: [
+        `feat: criar modelo ${base}`,
+        `feat: implementar service ${base}`,
+        `feat: criar endpoint ${base}`,
+        `test: adicionar testes de ${base}`,
+      ],
+      bug: [
+        `fix: identificar causa raiz em ${base}`,
+        `fix: corrigir logica de ${base}`,
+        `test: verificar correcao de ${base}`,
+      ],
+      melhoria: [
+        `feat: melhorar ${base}`,
+        `perf: otimizar ${base}`,
+        `test: validar melhoria em ${base}`,
+      ],
+      techdeb: [
+        `refactor: extrair logica de ${base}`,
+        `chore: remover codigo duplicado em ${base}`,
+        `test: garantir cobertura apos refactor`,
+      ],
+      spike: [
+        `docs: registrar descobertas sobre ${base}`,
+        `docs: documentar decisao tecnica de ${base}`,
+      ],
+    }
+    return sequencias[tipo] ?? sequencias.feature
+  }
+
+  return { gerarBranch, gerarCommit, gerarComandos, gerarPush, gerarSequenciaCommits }
 }

@@ -26,14 +26,31 @@
         </div>
       </div>
 
-      <!-- Commit sugerido -->
+      <!-- Sequência de commits -->
       <div>
-        <p class="rotulo">💬 Commit inicial sugerido</p>
-        <div class="flex items-center gap-2 mt-1">
-          <code class="flex-1 bg-slate-100 text-slate-800 text-sm px-4 py-3 rounded-lg font-mono">{{ commit }}</code>
-          <button class="btn-copiar" @click="copiar(commit, 'commit')">{{ copiado === 'commit' ? '✅' : '📋' }}</button>
+        <p class="rotulo">💬 Sequência de commits sugerida</p>
+        <p class="text-xs text-slate-400 mt-0.5 mb-2">Commits pequenos e frequentes — nunca um único "projeto pronto".</p>
+        <div class="space-y-1.5">
+          <div
+            v-for="(c, i) in sequencia"
+            :key="i"
+            class="flex items-center gap-2"
+          >
+            <code class="flex-1 bg-slate-100 text-slate-700 text-xs px-3 py-2 rounded-lg font-mono">{{ c }}</code>
+            <button class="btn-copiar text-xs" @click="copiar(c, `seq-${i}`)">{{ copiado === `seq-${i}` ? '✅' : '📋' }}</button>
+          </div>
         </div>
-        <p class="text-xs text-slate-400 mt-1">Faça commits pequenos e frequentes — não um único "projeto pronto".</p>
+      </div>
+
+      <!-- Referência de prefixos -->
+      <div>
+        <p class="rotulo">📖 Referência — Conventional Commits</p>
+        <div class="mt-1.5 grid grid-cols-2 gap-1 text-xs">
+          <div v-for="ref in COMMIT_REF" :key="ref.tipo" class="flex gap-2 items-start bg-slate-50 rounded px-2 py-1.5">
+            <code class="text-primaria font-bold shrink-0">{{ ref.tipo }}:</code>
+            <span class="text-slate-500">{{ ref.desc }}</span>
+          </div>
+        </div>
       </div>
 
       <!-- Push -->
@@ -85,12 +102,24 @@ const props = defineProps<{
   titulo: string
 }>()
 
-const { gerarBranch, gerarCommit, gerarComandos, gerarPush } = useBranchGenerator()
+const COMMIT_REF = [
+  { tipo: 'feat',     desc: 'nova funcionalidade' },
+  { tipo: 'fix',      desc: 'correção de bug' },
+  { tipo: 'refactor', desc: 'sem mudança de comportamento' },
+  { tipo: 'test',     desc: 'adição ou ajuste de testes' },
+  { tipo: 'docs',     desc: 'documentação' },
+  { tipo: 'chore',    desc: 'manutenção e configuração' },
+  { tipo: 'perf',     desc: 'melhoria de performance' },
+  { tipo: 'ci',       desc: 'mudanças no pipeline CI' },
+]
+
+const { gerarBranch, gerarCommit, gerarComandos, gerarPush, gerarSequenciaCommits } = useBranchGenerator()
 
 const branch   = computed(() => gerarBranch(props.tipo, props.titulo))
 const commit   = computed(() => gerarCommit(props.tipo, props.titulo))
 const comandos = computed(() => gerarComandos(branch.value))
 const push     = computed(() => gerarPush(branch.value))
+const sequencia = computed(() => gerarSequenciaCommits(props.tipo, props.titulo))
 
 const copiado = ref('')
 
