@@ -540,6 +540,10 @@
             <div v-else class="text-sm text-slate-400 py-4 text-center">Sem tarefas na sprint.</div>
           </div>
         </div>
+
+        <!-- ABA: Release -->
+        <GuiaRelease v-else-if="aba === 'release'" />
+
       </section>
 
       <section v-else class="text-slate-500 self-start cartao min-w-0">
@@ -611,6 +615,7 @@ export default defineComponent({
         { id: 'backlog',      label: '🗂 Backlog' },
         { id: 'execucao',     label: '▶️ Execução' },
         { id: 'metricas',     label: '📊 Métricas' },
+        { id: 'release',      label: '🚀 Release' },
       ],
     }
   },
