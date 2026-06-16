@@ -7,8 +7,9 @@ import { projetosTools, executarProjetosTool } from './tools/projetos.js'
 import { tarefasTools, executarTarefasTool } from './tools/tarefas.js'
 import { sprintsTools, executarSprintsTool } from './tools/sprints.js'
 import { gitTools, executarGitTool } from './tools/git.js'
+import { sessaoTools, executarSessaoTool } from './tools/sessao.js'
 
-const ALL_TOOLS = [...projetosTools, ...tarefasTools, ...sprintsTools, ...gitTools]
+const ALL_TOOLS = [...sessaoTools, ...projetosTools, ...tarefasTools, ...sprintsTools, ...gitTools]
 
 const url = process.env.SUPABASE_URL
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
@@ -33,6 +34,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   try {
     const resultado =
+      (await executarSessaoTool(name, toolArgs, db)) ??
       (await executarProjetosTool(name, toolArgs, db)) ??
       (await executarTarefasTool(name, toolArgs, db)) ??
       (await executarSprintsTool(name, toolArgs, db)) ??
